@@ -20,8 +20,8 @@ import pickle as pk
 
 import qcodes as qc
 from qcodes import (Instrument, VisaInstrument,
-                    ManualParameter, MultiParameter,
-                    validators as vals)
+					ManualParameter, MultiParameter,
+					validators as vals)
 from qcodes.instrument.channel import InstrumentChannel
 from qcodes.instrument.parameter import ParameterWithSetpoints, Parameter
 
@@ -29,6 +29,7 @@ from qcodes.instrument.parameter import ParameterWithSetpoints, Parameter
 from qcodes.utils.delaykeyboardinterrupt import DelayedKeyboardInterrupt
 from qcodes.utils.validators import Numbers, Arrays
 
+from pprint import pprint
 import plotly.express as px
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
@@ -52,2357 +53,2526 @@ log = logging.getLogger(__name__)
 
 
 class GeneratedSetPoints(Parameter):
-    """
-    A parameter that generates a setpoint array from start, stop and num points
-    parameters.
-    """
-    def __init__(self, startparam, stopparam, numpointsparam, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._startparam = startparam
-        self._stopparam = stopparam
-        self._numpointsparam = numpointsparam
+	"""
+	A parameter that generates a setpoint array from start, stop and num points
+	parameters.
+	"""
+	def __init__(self, startparam, stopparam, numpointsparam, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self._startparam = startparam
+		self._stopparam = stopparam
+		self._numpointsparam = numpointsparam
 
-    def get_raw(self):
-        return np.linspace(self._startparam(), self._stopparam() -1,
-                              self._numpointsparam())
+	def get_raw(self):
+		return np.linspace(self._startparam(), self._stopparam() -1,
+							  self._numpointsparam())
 
 
 class RAW(Parameter):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._channel = self._instrument._adc_channel
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self._channel = self._instrument._adc_channel
 
-    def get_raw(self):
-        time.sleep(0.2)
+	def get_raw(self):
+		time.sleep(0.2)
 
-        dataI, dataQ = self._instrument._parent.get_single_readout_pulse()
+		dataI, dataQ = self._instrument._parent.get_single_readout_pulse()
 
-        # print(self._channel)
-        if self._channel in np.arange(1,9):
-            data_ret = dataI[self._channel-1]
-        else:
-            log.warning('Wrong parameter.')
+		# print(self._channel)
+		if self._channel in np.arange(1,9):
+			data_ret = dataI[self._channel-1]
+		else:
+			log.warning('Wrong parameter.')
 
-        return data_ret
+		return data_ret
 
 
 class RAW_ALL(Parameter):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
 
-    def get_raw(self):
-        time.sleep(0.2)
+	def get_raw(self):
+		time.sleep(0.2)
 
-        dataI, dataQ = self._instrument.get_readout_pulse()
+		dataI, dataQ = self._instrument.get_readout_pulse()
 
-        data_ret = dataI
+		data_ret = dataI
 
-        return data_ret
+		return data_ret
 
 
 class IQINT(Parameter):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._channel = self._instrument._adc_channel
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self._channel = self._instrument._adc_channel
 
-    def get_raw(self):
-        time.sleep(0.2)
+	def get_raw(self):
+		time.sleep(0.2)
 
-        dataI, dataQ = self._instrument._parent.get_single_readout_pulse()
+		dataI, dataQ = self._instrument._parent.get_single_readout_pulse()
 
-        # print(self._channel)
-        if self._channel in np.arange(1,9):
-            data_retI = dataI[self._channel-1]
-            data_retQ = dataQ[self._channel-1]
-        else:
-            log.warning('Wrong parameter.')
+		# print(self._channel)
+		if self._channel in np.arange(1,9):
+			data_retI = dataI[self._channel-1]
+			data_retQ = dataQ[self._channel-1]
+		else:
+			log.warning('Wrong parameter.')
 
-        return data_retI, data_retQ
+		return data_retI, data_retQ
 
 
 class IQINT_ALL(Parameter):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
 
 
-    def get_raw(self):
-        time.sleep(0.2)
+	def get_raw(self):
+		time.sleep(0.2)
 
-        data_retI, data_retQ = self._instrument.get_readout_pulse()
+		data_retI, data_retQ = self._instrument.get_readout_pulse()
 
-        return data_retI, data_retQ
+		return data_retI, data_retQ
 
 
 class IQINT_ALL_read_header(Parameter):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
 
 
-    def get_raw(self):
-        time.sleep(0.2)
+	def get_raw(self):
+		time.sleep(0.2)
 
-        data_retI, data_retQ = self._instrument.get_readout_pulse()
+		data_retI, data_retQ = self._instrument.get_readout_pulse()
 
-        return data_retI, data_retQ
+		return data_retI, data_retQ
 
 
 class IQINT_AVG(Parameter):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
 
-    def get_raw(self):
+	def get_raw(self):
 
-        time.sleep(0.2)
+		time.sleep(0.2)
 
-        data_retI, data_retQ = self._instrument.get_readout_pulse()#.get_readout_pulse() ###### Martina 08/11/2020
+		data_retI, data_retQ = self._instrument.get_readout_pulse()#.get_readout_pulse() ###### Martina 08/11/2020
 
-        Sq_I = [[],[],[],[],[],[],[],[]]
-        Sq_Q = [[],[],[],[],[],[],[],[]]
+		Sq_I = [[],[],[],[],[],[],[],[]]
+		Sq_Q = [[],[],[],[],[],[],[],[]]
 
-        Sq_I_list = [[],[],[],[],[],[],[],[]]
-        Sq_Q_list = [[],[],[],[],[],[],[],[]]
+		Sq_I_list = [[],[],[],[],[],[],[],[]]
+		Sq_Q_list = [[],[],[],[],[],[],[],[]]
 
-        for i in range(8):
+		for i in range(8):
 
-            if len(data_retI[i])>0:
+			if len(data_retI[i])>0:
 
-                for j in range(len(data_retI[i])):
+				for j in range(len(data_retI[i])):
 
-                    if len(data_retI[i][j])>0:
+					if len(data_retI[i][j])>0:
 
-                        Sq_I[i] = np.append(Sq_I[i],np.mean(data_retI[i][j]))
-                        Sq_Q[i] = np.append(Sq_Q[i],np.mean(data_retQ[i][j]))
-                        Sq_I_list[i].append(np.mean(data_retI[i][j]))
-                        Sq_Q_list[i].append(np.mean(data_retQ[i][j]))
+						Sq_I[i] = np.append(Sq_I[i],np.mean(data_retI[i][j]))
+						Sq_Q[i] = np.append(Sq_Q[i],np.mean(data_retQ[i][j]))
+						Sq_I_list[i].append(np.mean(data_retI[i][j]))
+						Sq_Q_list[i].append(np.mean(data_retQ[i][j]))
 
-        for i in range(8):
+		for i in range(8):
 
-            Sq_I[i] = np.array(Sq_I_list[i])
-            Sq_Q[i] = np.array(Sq_Q_list[i])
+			Sq_I[i] = np.array(Sq_I_list[i])
+			Sq_Q[i] = np.array(Sq_Q_list[i])
 
-        return Sq_I,Sq_Q
+		return Sq_I,Sq_Q
 
 
 class ADC_power(Parameter):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
 
-    def get_raw(self):
+	def get_raw(self):
 
-        time.sleep(0.2)
+		time.sleep(0.2)
 
-        data_retI, data_retQ = self._instrument.get_readout_pulse()#.get_readout_pulse() ###### Martina 08/11/2020
+		data_retI, data_retQ = self._instrument.get_readout_pulse()#.get_readout_pulse() ###### Martina 08/11/2020
 
-        Sq_I_list = [[],[],[],[],[],[],[],[]]
-        Sq_Q_list = [[],[],[],[],[],[],[],[]]
-        Pow = [[],[],[],[],[],[],[],[]]
+		Sq_I_list = [[],[],[],[],[],[],[],[]]
+		Sq_Q_list = [[],[],[],[],[],[],[],[]]
+		Pow = [[],[],[],[],[],[],[],[]]
 
-        for i in range(8):
+		for i in range(8):
 
-            if len(data_retI[i])>0:
+			if len(data_retI[i])>0:
 
-                for j in range(len(data_retI[i])):
+				for j in range(len(data_retI[i])):
 
-                    if len(data_retI[i][j])>0:
+					if len(data_retI[i][j])>0:
 
-                        Sq_I_list[i].append(np.mean(data_retI[i][j]**2))
-                        Sq_Q_list[i].append(np.mean(data_retQ[i][j]**2))
+						Sq_I_list[i].append(np.mean(data_retI[i][j]**2))
+						Sq_Q_list[i].append(np.mean(data_retQ[i][j]**2))
 
-        for i in range(8):
+		for i in range(8):
 
-            Pow[i] = (np.array(Sq_I_list[i]) + np.array(Sq_Q_list[i]))/(50*2)    # RMS power
+			Pow[i] = (np.array(Sq_I_list[i]) + np.array(Sq_Q_list[i]))/(50*2)    # RMS power
 
-        return Pow
+		return Pow
 
 
 class ADC_power_dBm(Parameter):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
 
-    def get_raw(self):
+	def get_raw(self):
 
-        time.sleep(0.2)
+		time.sleep(0.2)
 
-        data_retI, data_retQ = self._instrument.get_readout_pulse()#.get_readout_pulse() ###### Martina 08/11/2020
+		data_retI, data_retQ = self._instrument.get_readout_pulse()#.get_readout_pulse() ###### Martina 08/11/2020
 
-        Sq_I_list = [[],[],[],[],[],[],[],[]]
-        Sq_Q_list = [[],[],[],[],[],[],[],[]]
-        Pow = [[],[],[],[],[],[],[],[]]
+		Sq_I_list = [[],[],[],[],[],[],[],[]]
+		Sq_Q_list = [[],[],[],[],[],[],[],[]]
+		Pow = [[],[],[],[],[],[],[],[]]
 
-        for i in range(8):
+		for i in range(8):
 
-            if len(data_retI[i])>0:
+			if len(data_retI[i])>0:
 
-                for j in range(len(data_retI[i])):
+				for j in range(len(data_retI[i])):
 
-                    if len(data_retI[i][j])>0:
+					if len(data_retI[i][j])>0:
 
-                        Sq_I_list[i].append(np.mean(data_retI[i][j]**2))
-                        Sq_Q_list[i].append(np.mean(data_retQ[i][j]**2))
+						Sq_I_list[i].append(np.mean(data_retI[i][j]**2))
+						Sq_Q_list[i].append(np.mean(data_retQ[i][j]**2))
 
-        for i in range(8):
+		for i in range(8):
 
-            Pow[i] = 10*np.log10(1e3*(np.array(Sq_I_list[i]) + np.array(Sq_Q_list[i]))/(50*2))        # RMS power
+			Pow[i] = 10*np.log10(1e3*(np.array(Sq_I_list[i]) + np.array(Sq_Q_list[i]))/(50*2))        # RMS power
 
-        return Pow
+		return Pow
 
 
 #TODO : add the different results we would return
 class AcqChannel(InstrumentChannel):
 
-    #initializing the array storing channel instances
-    objs = []
+	#initializing the array storing channel instances
+	objs = []
 
-    def __init__(self, parent: 'RFSoC', name: str, channel: int):
+	def __init__(self, parent: 'RFSoC', name: str, channel: int):
 
-        """
-        Args:
-            parent: Instrument that this channel is bound to.
-            name: Name to use for this channel.
-            channel: channel on the card to use
-        """
-        if channel not in np.arange(1,9):
-            raise ValueError('channel number must be in between 1 and 8')
+		"""
+		Args:
+			parent: Instrument that this channel is bound to.
+			name: Name to use for this channel.
+			channel: channel on the card to use
+		"""
+		if channel not in np.arange(1,9):
+			raise ValueError('channel number must be in between 1 and 8')
 
-        self._adc_channel = channel
+		self._adc_channel = channel
 
-        super().__init__(parent, name)
+		super().__init__(parent, name)
 
-        AcqChannel.objs.append(self)
+		AcqChannel.objs.append(self)
 
-        self.add_parameter(name='status',
-                           label = 'ADC{} status'.format(self._adc_channel),
-                           set_cmd='ADC:ADC{} {}'.format(self._adc_channel,'{:d}'),
-                           val_mapping={'ON': 1, 'OFF': 0},
-                           initial_value='OFF',
-                           snapshot_value = False
-                           )
+		self.add_parameter(name='status',
+						   label = 'ADC{} status'.format(self._adc_channel),
+						   set_cmd='ADC:ADC{} {}'.format(self._adc_channel,'{:d}'),
+						   val_mapping={'ON': 1, 'OFF': 0},
+						   initial_value='OFF',
+						   snapshot_value = False
+						   )
 
-        #TODO : add allowed values of decimation and mixer frea
-        self.add_parameter(name='decfact',
-                           label='ADC{} decimation factor'.format(self._adc_channel),
-                           #the decimation works by tiles of two adcs
-                           set_cmd='ADC:TILE{}:DECFACTOR {}'.format((self._adc_channel-1)//2,'{:d}'),
-                           snapshot_value = False
-                           )
+		#TODO : add allowed values of decimation and mixer frea
+		self.add_parameter(name='decfact',
+						   label='ADC{} decimation factor'.format(self._adc_channel),
+						   #the decimation works by tiles of two adcs
+						   set_cmd='ADC:TILE{}:DECFACTOR {}'.format((self._adc_channel-1)//2,'{:d}'),
+						   snapshot_value = False
+						   )
 
-        self.add_parameter(name='fmixer',
-                           label = 'ADC{} mixer frequency'.format(self._adc_channel),
-                           set_cmd='ADC:ADC{}:MIXER {}'.format(self._adc_channel,'{:.4f}'),
-                           # get_parser = self.MHz_to_Hz,
-                           # set_parser = self.Hz_to_MHz,
-                           snapshot_value = False
-                           )
+		self.add_parameter(name='fmixer',
+						   label = 'ADC{} mixer frequency'.format(self._adc_channel),
+						   set_cmd='ADC:ADC{}:MIXER {}'.format(self._adc_channel,'{:.4f}'),
+						   # get_parser = self.MHz_to_Hz,
+						   # set_parser = self.Hz_to_MHz,
+						   snapshot_value = False
+						   )
 
-        self.status('OFF')
+		self.status('OFF')
 
-    def MHz_to_Hz(self,value):
-        return value*1e6
+	def MHz_to_Hz(self,value):
+		return value*1e6
 
-    def Hz_to_MHz(self,value):
-        return value*1e-6
+	def Hz_to_MHz(self,value):
+		return value*1e-6
 
 class RFSoC(VisaInstrument):
 
-    # all instrument constructors should accept **kwargs and pass them on to
-    # super().__init__
-    def __init__(self, name, address, **kwargs):
-        # supplying the terminator means you don't need to remove it from every
-        # response
-        # super().__init__(name, address, terminator='\r\n', **kwargs)
-        super().__init__(name, address, terminator='\n', **kwargs)
-
-
-        self.dummy_array_size_8 = 8
-        self.sampling_rate = 2e9
-        self.FPGA_clock = 250e6
-
-        self.DAC_amplitude_calib = [1, 1, 1, 1, 1, 1, 1, 1]
-
-        self.pulses = pd.DataFrame()
-        self.ADC_ch_active = np.zeros(8)
-        self.length_vec = [[],[],[],[],[],[],[],[]]
-        self.ch_vec = []
-
-        self.display_sequence = True
-        self.display_IQ_progress = True
-        self.debug_mode = False
-        self.debug_mode_plot_waveforms = False
-        self.debug_mode_waveform_string = False
-        self.loop_time = False 
-
-        self.raw_dump_location = "C:/Data_tmp"
-
-        #Add the channels to the instrument
-        for adc_num in np.arange(1,9):
-            adc_name='ADC{}'.format(adc_num)
-            adc=AcqChannel(self,adc_name,adc_num)
-            self.add_submodule(adc_name, adc)
-
-
-        self.add_parameter('sequence_str',
-                            get_parser=str,
-                            initial_value='',
-                            parameter_class=ManualParameter)
-
-        self.add_parameter('n_points',
-                            get_parser=int,
-                            initial_value = int(1),
-                            parameter_class=ManualParameter)
-
-        self.add_parameter('acquisition_mode',
-                            label='ADCs acquisition mode',
-                            get_parser=str,
-                            vals = vals.Enum('RAW','INT'),
-                            parameter_class=ManualParameter
-                            )
-
-        self.add_parameter( name = 'output_format',
-                            #Format(string) : 'BIN' or 'ASCII'
-                            label='Output format',
-                            vals = vals.Enum('ASCII','BIN'),
-                            set_cmd='OUTPUT:FORMAT ' + '{}',
-                            initial_value='BIN',
-                            # get_cmd='OUTPUT:FORMAT?',
-                            #snapshot_get  = False,
-                            get_parser=str,
-                            snapshot_value = False)
-
-        self.add_parameter(name='RAW_ALL',
-                           unit='V',
-                           label='Raw adc for all channel',
-                           parameter_class=RAW_ALL,
-                           snapshot_value = False)
-
-        self.add_parameter(name='IQINT_ALL',
-                           unit='V',
-                           label='Integrated I Q for all channels',
-                           parameter_class=IQINT_ALL,
-                           snapshot_value = False)
-
-        self.add_parameter(name='IQINT_ALL_read_header',
-                           unit='V',
-                           label='Integrated I Q for all channels with header check',
-                           parameter_class=IQINT_ALL_read_header,
-                           snapshot_value = False)
-
-        self.add_parameter(name='IQINT_two_mode_squeezing',
-                           unit='V',
-                           label='Integrated I Q for 2 channels with header check',
-                           parameter_class = ManualParameter,
-                           snapshot_value = False)
-
-        self.add_parameter(name='IQINT_AVG',
-                           unit='V',
-                           label='Integrated averaged I Q for all channels',
-                           parameter_class=IQINT_AVG,
-                           vals=Arrays(shape=(2, 8, 2)), ### ME
-                           snapshot_value = False)
-
-        self.add_parameter('channel_axis',
-                            unit = 'channel index',
-                            label = 'Channel index axis for ADC power mode',
-                            parameter_class = GeneratedSetPoints,
-                            startparam = self.int_0,
-                            stopparam = self.int_8,
-                            numpointsparam = self.int_8,
-                            snapshot_value = False,
-                            vals=Arrays(shape=(self.dummy_array_size_8,))
-                            )
+	# all instrument constructors should accept **kwargs and pass them on to
+	# super().__init__
+	def __init__(self, name, address, **kwargs):
+		# supplying the terminator means you don't need to remove it from every
+		# response
+		# super().__init__(name, address, terminator='\r\n', **kwargs)
+		super().__init__(name, address, terminator='\n', **kwargs)
+
+
+		self.dummy_array_size_8 = 8
+		self.sampling_rate = 2e9
+		self.FPGA_clock = 250e6
+
+		self.DAC_amplitude_calib = [1, 1, 1, 1, 1, 1, 1, 1]
+		self.ADC_amplitude_calib = [1, 1, 1, 1, 1, 1, 1, 1]
+
+		self.pulses = pd.DataFrame()
+		self.seq_looping = pd.DataFrame()
+		self.ADC_ch_active = np.zeros(8)
+		self.length_vec = [[],[],[],[],[],[],[],[]]
+		self.ADC_events = np.array([])
+		self.global_sequence_str = ''
+		self.global_sequence = []
+		self.global_sequence_info = []
+
+		self.display_sequence = True
+		self.display_IQ_progress = True
+		self.debug_mode = False
+		self.debug_mode_plot_waveforms = False
+		self.debug_mode_waveform_string = False
+		self.loop_time = False
+
+		self.global_loop = (False,0) 
+		self.n_points_total = 0
+
+		self._mux_config_matrix = np.array([[0,1,2,2],
+											[1,0,3,3],
+										['x','x',0,1],
+										['x','x',1,0]])
+
+		self.raw_dump_location = "C:/Data_tmp"
+
+
+		#Add the channels to the instrument
+		for adc_num in np.arange(1,9):
+			adc_name='ADC{}'.format(adc_num)
+			adc=AcqChannel(self,adc_name,adc_num)
+			self.add_submodule(adc_name, adc)
+
+
+		self.add_parameter('sequence_str',
+							get_parser=str,
+							initial_value='',
+							parameter_class=ManualParameter)
+
+		self.add_parameter('n_points',
+							get_parser=int,
+							initial_value = int(1),
+							parameter_class=ManualParameter)
+
+		self.add_parameter('acquisition_mode',
+							label='ADCs acquisition mode',
+							get_parser=str,
+							vals = vals.Enum('RAW','INT'),
+							parameter_class=ManualParameter
+							)
+
+		self.add_parameter( name = 'output_format',
+							#Format(string) : 'BIN' or 'ASCII'
+							label='Output format',
+							vals = vals.Enum('ASCII','BIN'),
+							set_cmd='OUTPUT:FORMAT ' + '{}',
+							initial_value='BIN',
+							# get_cmd='OUTPUT:FORMAT?',
+							#snapshot_get  = False,
+							get_parser=str,
+							snapshot_value = False)
+
+		self.add_parameter(name='RAW_ALL',
+						   unit='V',
+						   label='Raw adc for all channel',
+						   parameter_class=RAW_ALL,
+						   snapshot_value = False)
+
+		self.add_parameter(name='IQINT_ALL',
+						   unit='V',
+						   label='Integrated I Q for all channels',
+						   parameter_class=IQINT_ALL,
+						   snapshot_value = False)
+
+		self.add_parameter(name='IQINT_ALL_read_header',
+						   unit='V',
+						   label='Integrated I Q for all channels with header check',
+						   parameter_class=IQINT_ALL_read_header,
+						   snapshot_value = False)
+
+		self.add_parameter(name='IQINT_two_mode_squeezing',
+						   unit='V',
+						   label='Integrated I Q for 2 channels with header check',
+						   parameter_class = ManualParameter,
+						   snapshot_value = False)
 
-        self.add_parameter(name='ADC_power',
-                           unit='W',
-                           label='Array of incident power on ADC channels',
-                           parameter_class=ADC_power,
-                           vals=Arrays(shape=(self.dummy_array_size_8,)),
-                           # vals=Arrays(shape=(self.dummy_array_size_8,)),
-                           snapshot_value = False)
+		self.add_parameter(name='IQINT_AVG',
+						   unit='V',
+						   label='Integrated averaged I Q for all channels',
+						   parameter_class=IQINT_AVG,
+						   vals=Arrays(shape=(2, 8, 2)), ### ME
+						   snapshot_value = False)
 
-        self.add_parameter(name='ADC_power_dBm',
-                           unit='dBm',
-                           label='Array of incident power on ADC channels',
-                           parameter_class=ADC_power_dBm,
-                           vals=Arrays(shape=(self.dummy_array_size_8,)),
-                           snapshot_value = False)
+		self.add_parameter('channel_axis',
+							unit = 'channel index',
+							label = 'Channel index axis for ADC power mode',
+							parameter_class = GeneratedSetPoints,
+							startparam = self.int_0,
+							stopparam = self.int_8,
+							numpointsparam = self.int_8,
+							snapshot_value = False,
+							vals=Arrays(shape=(self.dummy_array_size_8,))
+							)
 
-        # legacy used for process_sequencing
-        self.add_parameter(name='freq_sync',
-                           unit='Hz',
-                           initial_value=10e6,
-                           label='Reference frequency for synchronizing pulse repetition',
-                           get_parser=float,
-                           parameter_class=ManualParameter,
-                           snapshot_value = False)
+		self.add_parameter(name='ADC_power',
+						   unit='W',
+						   label='Array of incident power on ADC channels',
+						   parameter_class=ADC_power,
+						   vals=Arrays(shape=(self.dummy_array_size_8,)),
+						   # vals=Arrays(shape=(self.dummy_array_size_8,)),
+						   snapshot_value = False)
 
-        self.add_parameter(name='time_vec',
-                           unit='s',
-                           label='Time vector used for time sequence measurement'
-                           )
+		self.add_parameter(name='ADC_power_dBm',
+						   unit='dBm',
+						   label='Array of incident power on ADC channels',
+						   parameter_class=ADC_power_dBm,
+						   vals=Arrays(shape=(self.dummy_array_size_8,)),
+						   snapshot_value = False)
 
+		# legacy used for process_sequencing
+		self.add_parameter(name='freq_sync',
+						   unit='Hz',
+						   initial_value=10e6,
+						   label='Reference frequency for synchronizing pulse repetition',
+						   get_parser=float,
+						   parameter_class=ManualParameter,
+						   snapshot_value = False)
 
+		self.add_parameter(name='time_vec',
+						   unit='s',
+						   label='Time vector used for time sequence measurement'
+						   )
 
-    def pulses_sequence(self):
 
-        """
-        This function takes the pulses sequence stored in self.pulses and convert it in a Panda Dataframe 
-        that can be used by 'LUT_and_address_filling' and 
-        process_sequencing_IQ_table() (or process_sequencing() in the legacy mode)
-        If self.display_sequence is True it also provide à graphical representation of the pulse sequence. 
-        Note that the displayed sequence just represent the first instance of the loop set by self.n_points.
-        Also only the first iteration of the loop set by a n_rep>1 is shown (in dark color).
-        """
 
+	def pulses_sequence(self):
 
+		"""
+		This function takes the pulses sequence stored in self.pulses and convert it in a Panda Dataframe 
+		that can be used by 'LUT_and_address_filling' and 
+		process_sequencing_IQ_table() (or process_sequencing() in the legacy mode)
+		If self.display_sequence is True it also provide à graphical representation of the pulse sequence. 
+		Note that the displayed sequence just represent the first instance of the loop set by self.n_points.
+		Also only the first iteration of the loop set by a n_rep>1 is shown (in dark color).
+		"""
 
-        log.info('Started sequence processing'+'  \n')
 
-        pulses_raw_df = self.pulses
 
-        # --- Check pulse labeling 
+		log.info('Started sequence processing'+'  \n')
 
-        if len(set(pulses_raw_df['label'])) < len(pulses_raw_df['label']):
+		pulses_raw_df = self.pulses
+		seq_looping = self.seq_looping
 
-            log.error('Duplicate Labels: Labels need to be unique for consistent identification of pulse hierarchy.')
+		pulses_raw_df['index'] = range(1, len(pulses_raw_df) + 1)
+		pulses_raw_df = pulses_raw_df.set_index('index')
 
-        pulses_raw_df.set_index('label', inplace = True)
+		# --- Check pulse labeling 
 
-        # --- Legacy, used to define a pulse with respect to another one in the time frame. May not work with this version (unchecked)
+		if len(set(pulses_raw_df['label'])) < len(pulses_raw_df['label']):
 
-        resolve_hierarchy = True
-        while resolve_hierarchy:
+			log.error('Duplicate Labels: Labels need to be unique for consistent identification of pulse hierarchy.')
 
-            for index, row in pulses_raw_df.iterrows():
+		try:
 
-                if row['parent'] != None:
+			if len(set(seq_looping['label'])) < len(seq_looping['label']):
 
-                    if pulses_raw_df.loc[row['parent']]['parent'] == None:
+				log.error('Duplicate Labels: Labels need to be unique for consistent identification of looping hierarchy.')
 
-                        pulses_raw_df.loc[index,'start'] = pulses_raw_df.loc[index,'start'] +  pulses_raw_df.loc[row['parent']]['start'] + pulses_raw_df.loc[row['parent']]['length']
-                        pulses_raw_df.loc[index,'parent'] = None
+		except:
 
-            resolve_hierarchy = False
-            for val in pulses_raw_df['parent']:
-                if val != None:
-                    resolve_hierarchy = True
+			log.info('No looping programmed.')
 
-        if self.debug_mode:
+		# --- check pulse timing compatibility with RFSoC timing constrains 
 
-            print('Hierarchy resolution...')
-            display(pulses_raw_df)
+		for index, row in pulses_raw_df.iterrows():
 
-        # --- Initialisation 
+			if row['length'] == self.time_conversion(row['length']) and row['start'] == self.time_conversion(row['start']):
 
-        pulses_df = pd.DataFrame()
-        time_ADC = [0,0,0,0,0,0,0,0]
-        time_DAC = [0,0,0,0,0,0,0,0]
-        length_vec = [[],[],[],[],[],[],[],[]]
-        ch_vec = []
-        # color of the displayed pulses with n_rep=1
-        wait_color = int("D3D3D3", 16)
-        DAC_color = int("306cc7", 16)
-        ADC_color = int("db500b", 16)
-        # color of the displayed pulses with n_rep>1
-        wait_color_rep = int("808080", 16)
-        DAC_color_rep = int("234e90", 16)
-        ADC_color_rep = int("913608", 16)
+				pass
 
-        wait_count = 0 # counter used to label the wait 
-        termination_time = 0 # keep track of the latest event
-        ch_demod = None # either or not the ADC LUT will be used during the sequence
+			else:
 
+				pulses_raw_df.at[index,'length'] = self.time_conversion(row['length'])
+				pulses_raw_df.at[index,'start'] = self.time_conversion(row['start'])
+				
+				log.error('Incompatible timing: RFSoC supports events only in factors of 4 ns.')
 
+		# --- fixed hierarchy resolution, please let me know if issues are found -Arpit (202301)
 
-        # --- Beginging of the treatment (ADC)
+		pulses_raw_df.set_index('label', inplace = True)
 
-        tmp_df = pulses_raw_df.loc[pulses_raw_df['module'] == 'ADC']
+		resolve_hierarchy = True
+		while resolve_hierarchy:
 
+			for index, row in pulses_raw_df.iterrows():
 
-        for index, row in tmp_df.iterrows():
+				if row['parent'] != None:
 
-            rep_nb = int(row['repetitions']) # check for repetition
-            start = row['start']
-            length = row['length']
+					if pulses_raw_df.loc[row['parent']]['parent'] == None and pulses_raw_df.loc[row['parent']]['partner'] == None:
 
+						pulses_raw_df.loc[index,'start'] = pulses_raw_df.loc[index,'start'] +  pulses_raw_df.loc[row['parent']]['start'] + (pulses_raw_df.loc[row['parent']]['length'])
+						pulses_raw_df.loc[index,'parent'] = None
 
-            # if n_rep>1 we need to know the dead_time, the waiting time between two consecutive pulses 
-            if rep_nb>1: 
-                dead_time = row['dead_time']
-            else:
-                dead_time = 0
+				if row['partner'] != None:
 
-            # creat the start and stop of the pulses 
-            start_vec = start + np.arange(rep_nb) * (length + dead_time)
-            stop_vec = start + np.arange(1, rep_nb + 1) * length + np.arange(rep_nb) * dead_time
+					if pulses_raw_df.loc[row['partner']]['parent'] == None and pulses_raw_df.loc[row['partner']]['partner'] == None:
 
+						pulses_raw_df.loc[index,'start'] = pulses_raw_df.loc[index,'start'] +  pulses_raw_df.loc[row['partner']]['start'] 
+						pulses_raw_df.loc[index,'param'][0]['partnet_length'] = pulses_raw_df.loc[row['partner']]['length'] 
+						pulses_raw_df.loc[index,'param'][0]['partnet_start'] = pulses_raw_df.loc[row['partner']]['start'] 
+						pulses_raw_df.loc[index,'param'][0]['partnet_label'] = row['partner']
+						pulses_raw_df.loc[index,'partner'] = None
 
-            for k in range(rep_nb):
-                # check if the event is a wait of a pulses (here wait)
-                if start_vec[k] > time_ADC[int(row['channel'])-1]:
-                    # in case n_rep>1 it only compute the two first iterations in order to take the deadtime
-                    if k < 2:
+			resolve_hierarchy = False
+			for val in pulses_raw_df['parent']:
+				if val != None:
+					resolve_hierarchy = True
+			for val in pulses_raw_df['partner']:
+				if val != None:
+					resolve_hierarchy = True
 
-                        label = 'wait ' + str(wait_count)
-                        start = time_ADC[int(row['channel'])-1]
-                        stop = start_vec[k]
-                        time = (start_vec[k] - time_ADC[int(row['channel'])-1])
-                        module = row['module']
-                        Channel = 'ADC ch' + str(int(row['channel']))
-                        mode = 'wait'
-                        param = None
-                        ch_num = row['channel']
-                        LUT = False
-                        ch_demod = row['demodulation_channels']
+		if self.debug_mode:
 
-                        if k == 0:
-                            rep_nb_wait = 1
-                            color = '#{0:06X}'.format(wait_color)
-                        else:
-                            rep_nb_wait = rep_nb
-                            color = '#{0:06X}'.format(wait_color_rep)
+			print('Hierarchy resolution...')
+			display(pulses_raw_df)
 
-                        pulses_df = pd.concat([pulses_df, pd.DataFrame.from_records([dict(label=label, start=start, stop=stop, time=time, module=module,
-                                        Channel=Channel, mode=mode, color=str(color), param=param, ch_num=ch_num,
-                                        rep_nb=rep_nb_wait, LUT=LUT, ch_demod=ch_demod)])], ignore_index=True)
+		# --- Initialization 
 
-                    else:
-                        # if k > 2 it only updates the last event time
-                        stop = start_vec[k]
-                        break
-                    
+		pulses_df = pd.DataFrame()
+		loops_df = pd.DataFrame()
 
-                    wait_count +=1
+		time_ADC = [0,0,0,0,0,0,0,0]
+		time_DAC = [0,0,0,0,0,0,0,0]
+		length_vec = [[],[],[],[],[],[],[],[]]
+		# color of the displayed pulses with n_rep=1
+		color_dict = {}
+		wait_color = int("D3D3D3", 16)
+		DAC_color = int("c1666b", 16)		#306cc7
+		ADC_color = int("4281a4", 16)		#db500b
+		loop_color = int("48a9a6", 16)
+		# # color of the displayed pulses with n_rep>1
+		# wait_color_rep = int("808080", 16)
+		# DAC_color_rep = int("234e90", 16)
+		# ADC_color_rep = int("913608", 16)
 
-                # if case n_rep>1 it only compute the first iteration for computation efficiency
-                if k < 1:
-                    label = index
-                    start = start_vec[k]
-                    stop = stop_vec[k]
-                    time = length
-                    module = row['module']
-                    Channel = 'ADC ch' + str(int(row['channel']))
-                    ch_num = row['channel']
+		wait_count = 0 # counter used to label the wait 
+		termination_time = 0 # keep track of the latest event
+		ch_demod = None # either or not the ADC LUT will be used during the sequence
 
-                    rep_nb_sig = rep_nb
+		self.ADC_events = np.array([])
 
-                    if rep_nb>1:
-                        color = '#{0:06X}'.format(ADC_color_rep)
-                    else:
-                        color = '#{0:06X}'.format(ADC_color)
 
-                    # fill the parameters only used for the 'IQ_table' mode 
-                    LUT = not(np.isnan(row['LUT']))
-                    ch_demod = row['demodulation_channels']
-                    param = row['param']
-                    mode = row['mode']
-                    start_pointer = 0 # shift in the starting pointer not implemented so far
+		# --- Beginning of the treatment (loops)
 
+		for index, row in seq_looping.iterrows():
 
-                    pulses_df = pd.concat([pulses_df, pd.DataFrame.from_records([dict(label=label, start=start, stop=stop, time=time, module=module,
-                                    Channel=Channel, mode=mode, color=str(color), param=param, ch_num=ch_num,start_pointer=start_pointer,
-                                    rep_nb=rep_nb_sig, LUT=LUT, ch_demod=ch_demod)])],
-                                    ignore_index=True)
+			if self.debug_mode:
 
+				print('\n------------- Loop processing -------------\n')
 
+			if row['mode'] == 'global':
 
-                # --- Update of the acquisition parameter used to format the data in get_readout_pulse()
-                    nb_points = int(time*1e-6*self.sampling_rate)
-                    for chd in ch_demod:
-                        ch_vec.append(chd - 1)
-                        length_vec[chd-1].append(nb_points)
+				self.global_loop = (True,int(row['rep']))
 
+				label = 'looping ' + str(int(row['rep'])) + ' times'
+				channel = 'loop global'
+				start = 0
+				stop = -1
+				time = 0
+				mode = row['mode']
+				color = color = '#{0:06X}'.format(loop_color)
 
-                else:
-                    # if k>1 it only updates the last event time
-                    stop = stop_vec[k]
+				loops_df = loops_df.append(dict(label=label, start=start, stop=stop, time=time, mode=mode, Channel=channel, color=str(color)), ignore_index=True)
 
-                time_ADC[int(row['channel'])-1] = stop
+				if self.debug_mode:
 
-                if stop>termination_time:
-                # update of the termination time used to compute if a wait will be added before the next pulse
-                    termination_time = stop
+					print('global loop detected for n = '+str(self.global_loop[1]))
 
 
+			if self.debug_mode:
 
-        # --- Beginging of the treatment (DAC)
+				display(loops_df)
+				print('\n------------- Loop processing finished -------------\n')
 
-        tmp_df = pulses_raw_df.loc[pulses_raw_df['module'] == 'DAC']
-        for index, row in tmp_df.iterrows():
+		# --- Beginning of the treatment (DAC)
 
-            rep_nb = int(row['repetitions'])
-            start = row['start']
-            length = row['length']
+		tmp_df = pulses_raw_df.loc[pulses_raw_df['module'] == 'DAC']
 
-            if row['mode'] != 'trigger' and rep_nb>1:
-                dead_time = row['dead_time']
-            else:
-                dead_time = 0
+		if self.debug_mode:
+			
+			print('\n------------- DAC processing input -------------\n')
+			display(tmp_df)
 
+		for index, row in tmp_df.iterrows():
 
-            start_vec = start + np.arange(rep_nb) * (length + dead_time)
-            stop_vec = start + np.arange(1, rep_nb + 1) * length + np.arange(rep_nb) * dead_time
+			if row['start'] > time_DAC[int(row['channel'])-1]:
+				
+				label = 'wait' + str(wait_color-int("D3D3D3", 16)+1)
+				start = time_DAC[int(row['channel'])-1]
+				stop = row['start']
+				time = row['start'] - time_DAC[int(row['channel'])-1]
+				module = row['module']
+				Channel = 'DAC ch' + str(int(row['channel']))
+				mode = 'wait'
+				color_dict[str(wait_color)] = '#{0:06X}'.format(wait_color)
+				color = '#{0:06X}'.format(wait_color)
+				wait_color += 1
+				param = row['param']
+				ch_num = row['channel']
+				
+				pulses_df = pulses_df.append(dict(label=label, start=start, stop=stop, time=time, module=module , Channel=Channel, mode=mode, color=str(color), param=param, ch_num=ch_num), ignore_index=True)
 
-            for k in range(rep_nb):
+			start = row['start']
+			length = row['length']
+			stop = start + length
 
-                if start_vec[k] > time_DAC[int(row['channel'])-1]:
-                    if k < 2:
-                        label = 'wait ' + str(wait_count)
-                        start = time_DAC[int(row['channel'])-1]
-                        stop = start_vec[k]
-                        time = (start_vec[k] - time_DAC[int(row['channel'])-1])
-                        module = row['module']
-                        Channel = 'DAC ch' + str(int(row['channel']))
-                        mode = 'wait'
-                        param = None
-                        ch_num = row['channel']
-                        LUT = False
 
-                        # should not repeat the first waiting time before the loop
-                        if k == 0:
-                            rep_nb_wait = 1
-                            color = '#{0:06X}'.format(wait_color)
-                        else:
-                            rep_nb_wait = rep_nb
-                            color = '#{0:06X}'.format(wait_color_rep)
+			label = index
+			time = length
+			module = row['module']
+			Channel = 'DAC ch' + str(int(row['channel']))
+			mode = row['mode']
+			param = row['param']
+			ch_num = row['channel']
+			LUT = not(np.isnan(row['LUT']))
+			start_pointer = row['starting_pointer']
 
-                        pulses_df = pd.concat([pulses_df, pd.DataFrame.from_records([dict(label=label, start=start, stop=stop, time=time, module=module,
-                                        Channel=Channel, mode=mode, color=str(color), param=param, ch_num=ch_num,
-                                        rep_nb=rep_nb_wait, LUT=LUT)])],
-                                        ignore_index=True)
 
-                    else:
-                        stop = start_vec[k]
-                        break
+			color = '#{0:06X}'.format(DAC_color)
 
-                    wait_count +=1
+			pulses_df = pd.concat([pulses_df, pd.DataFrame.from_records([dict(label=label, start=start, stop=stop, time=time, module=module, Channel=Channel, mode=mode, color=str(color), param=param, ch_num=ch_num, LUT=LUT, start_pointer=start_pointer)])], ignore_index=True)
 
 
-                if k < 1:
 
-                    label = index
-                    start = start_vec[k]
-                    stop = stop_vec[k]
-                    time = length
-                    module = row['module']
-                    Channel = 'DAC ch' + str(int(row['channel']))
-                    mode = row['mode']
-                    param = row['param']
-                    ch_num = row['channel']
-                    LUT = not(np.isnan(row['LUT']))
-                    start_pointer = row['starting_pointer']
+			time_DAC[int(row['channel'])-1] = stop
 
-                    rep_nb_sig = rep_nb
+			if stop>termination_time:
 
-                    if rep_nb>1:
-                        color = '#{0:06X}'.format(DAC_color_rep)
-                    else:
-                        color = '#{0:06X}'.format(DAC_color)
+				termination_time = stop
 
-                    pulses_df = pd.concat([pulses_df, pd.DataFrame.from_records([dict(label=label, start=start, stop=stop, time=time, module=module,
-                                    Channel=Channel, mode=mode, color=str(color), param=param, ch_num=ch_num,
-                                    rep_nb=rep_nb_sig, LUT=LUT, start_pointer=start_pointer)])],
-                                    ignore_index=True)
+		if self.debug_mode:
 
-                else:
-                    stop = stop_vec[k]
+			print('\n------------- xxxxxxxxxxxxxxxxxxxxxxx -------------\n')
+			display(pulses_df)
+			print('\n------------- DAC processing finished -------------\n')
 
 
-                time_DAC[int(row['channel'])-1] = stop
+		# --- Beginning of the treatment (ADC)
 
-                if stop>termination_time:
+		tmp_df = pulses_raw_df.loc[pulses_raw_df['module'] == 'ADC']
 
-                    termination_time = stop
+		if self.debug_mode:
+			
+			print('\n------------- ADC processing input -------------\n')
+			display(tmp_df)
 
+		for index, row in tmp_df.iterrows():
 
+			if row['start'] > time_ADC[int(row['channel'])-1]:
+			
+				label = 'wait' + str(wait_color-int("D3D3D3", 16)+1)
+				start = time_ADC[int(row['channel'])-1]
+				stop = row['start']
+				time = row['start'] - time_ADC[int(row['channel'])-1]
+				module = row['module']
+				Channel = 'ADC ch' + str(int(row['channel']))
+				mode = 'wait'
+				color_dict[str(wait_color)] = '#{0:06X}'.format(wait_color)
+				color = '#{0:06X}'.format(wait_color)
+				wait_color += 1
+				param = row['param']
+				ch_num = row['channel']
+				
+				pulses_df = pulses_df.append(dict(label=label, start=start, stop=stop, time=time, module=module , Channel=Channel, mode=mode, color=str(color), param=param, ch_num=ch_num), ignore_index=True)
 
+			start = row['start']
+			length = row['length']
+			stop = start + length
+			label = index
+			time = length
+			module = row['module']
+			Channel = 'ADC ch' + str(int(row['channel']))
+			ch_num = row['channel']
+			color = '#{0:06X}'.format(ADC_color)
 
-        # --- Pulse sequences treatment solving inconsistancy regarding stop time when n_rep>1 and more than one pulses is used. 
+			# fill the parameters only used for the 'IQ_table' mode 
+			LUT = not(np.isnan(row['LUT']))
+			ch_demod = row['demodulation_channels']
+			param = row['param']
+			mode = row['mode']
+			start_pointer = 0 # shift in the starting pointer not implemented so far
 
-        pulses_fin = pd.DataFrame()
-        channel_list = set(list(pulses_df['Channel']))
 
-        for idx, ch in enumerate(channel_list):
-            pulses_ch =  pulses_df.loc[pulses_df['Channel']==ch]
-            pulses_ch = pulses_ch.sort_values('start')
-            for i in range(len(pulses_ch) - 1):
-                pulses_ch.iloc[i, pulses_ch.columns.get_loc('stop')] = pulses_ch.iloc[i + 1]['start']
-                pulses_ch.iloc[i, pulses_ch.columns.get_loc('time')] = pulses_ch.iloc[i]['stop'] - pulses_ch.iloc[i]['start']
-            pulses_fin = pd.concat([pulses_fin, pulses_ch], ignore_index=True)
+			pulses_df = pd.concat([pulses_df, pd.DataFrame.from_records([dict(label=label, start=start, stop=stop, time=time, module=module, Channel=Channel, mode=mode, color=str(color), param=param, ch_num=ch_num,start_pointer=start_pointer, LUT=LUT, ch_demod=ch_demod)])], ignore_index=True)
 
-        # --- Sequence plotting 
+			self.ADC_events = np.append(self.ADC_events,ch_demod)
+			length_vec[int(row['channel'])-1].append(float(length)*1e-6*self.sampling_rate)
 
-        if self.display_sequence:
+			time_ADC[int(row['channel'])-1] = stop
 
-            fig = make_subplots(rows=len(channel_list), cols=1, shared_xaxes=True)            
+			if stop>termination_time:
+			# update of the termination time used to compute if a wait will be added before the next pulse
+				termination_time = stop
 
-            for idx, ch in enumerate(channel_list):
-                pulses_loop =  pulses_fin.loc[pulses_fin['Channel']==ch]
-                pulses_loop = pulses_loop.sort_values('start')
+		if self.debug_mode:
 
-                fig.add_trace(go.Bar(x=pulses_loop.time, y=pulses_loop.Channel, orientation='h', text=pulses_loop.label, marker=dict(color=pulses_loop.color), 
-                                        customdata=np.dstack((pulses_loop.label, pulses_loop.start, pulses_loop.stop))[0],
-                                        hovertemplate='label: %{customdata[0]: s} <br>start: %{customdata[1]:.3f} <br>stop: %{customdata[2]:.3f}'), idx + 1, 1)
+			print('\n------------- xxxxxxxxxxxxxxxxxxxxxxx -------------\n')
+			display(pulses_df)
+			print('\n------------- ADC processing finished -------------\n')
 
-            fig.update_layout(showlegend=False)
-            fig.show()
 
+		# --- Pulse sequences treatment solving inconsistency regarding stop time when n_rep>1 and more than one pulses is used. 
 
-        # store the length of the pulses and the channel used, it is use for data shapping in get_readout_pulse()
-        self.length_vec = length_vec
-        self.ch_vec = ch_vec
+		# pulses_fin = pd.DataFrame()
+		# for idx, ch in enumerate(channel_list):
+		# 	pulses_ch =  pulses_df.loc[pulses_df['Channel']==ch]
+		# 	pulses_ch = pulses_ch.sort_values('start')
+		# 	for i in range(len(pulses_ch) - 1):
+		# 		pulses_ch.iloc[i, pulses_ch.columns.get_loc('stop')] = pulses_ch.iloc[i + 1]['start']
+		# 		pulses_ch.iloc[i, pulses_ch.columns.get_loc('time')] = pulses_ch.iloc[i]['stop'] - pulses_ch.iloc[i]['start']
+		# 	pulses_fin = pd.concat([pulses_fin, pulses_ch], ignore_index=True)
+		pulses_fin = pulses_df
 
+		# --- Sequence plotting 
 
-        return pulses_fin
+		if self.display_sequence:
 
+			# --- Prepare channel list for display
 
+			channel_set = list(set(list(pulses_df['Channel'])))
+			channel_list = []
 
-    def LUT_and_adress_filling(self, pulses_df, ADC=True, DAC=True):
+			for i in range(1,9):
 
-        """
-        This function take the pulses sequence provided and store the pulses in the LUT of the DAC/ADC. 
-        It also define the pointers that can be used. 
+				if 'DAC ch'+str(i) in channel_set:
 
-        For now three pointers can be defined in the ADC: start/loop/stop. 
-        However, the start pointer cannot be shifted for now (it is set at the begining of the pulses).
-        Moreover, the loop pointer is set equal to the start pointer.
+					channel_list.append('DAC ch'+str(i))
 
+				if 'ADC ch'+str(i) in channel_set:
 
-        Parameters:
-        pulses_df -- panda DataFrame containing the pulse sequence. 
-        ADC -- LUT and pointer adress for the ADC (default True).
-        DAC -- LUT and pointer adress for the DAC (default True).
+					channel_list.append('ADC ch'+str(i))
 
-        Return: 
-        DAC_pulses_pointer, ADC_pulses_pointer -- two lists containing the DAC and ADC pointers.
+			if self.global_loop[0]:
 
-        """
+				channel_list.append('loop global')
 
-        DAC_pulses_array = [np.array([]),np.array([]),np.array([]),np.array([]),np.array([]),np.array([]),np.array([]),np.array([])]
-        DAC_pulses_pointer = [[],[],[],[],[],[],[],[]]
+			# --- Prepare the figure
 
-        ADC_I_pulses_array = [np.array([]),np.array([]),np.array([]),np.array([]),np.array([]),np.array([]),np.array([]),np.array([])]
-        ADC_Q_pulses_array = [np.array([]),np.array([]),np.array([]),np.array([]),np.array([]),np.array([]),np.array([]),np.array([])]
-        ADC_pulses_pointer = [[[], [], []], [[], [], []], [[], [], []], [[], [], []], [[], [], []] , [[], [], []] , [[], [], []], [[], [], []]]
+			pulses_loop_list = []
+			for idx, ch in enumerate(channel_list):
 
+				if ch[0:4] != 'loop':
 
-        if DAC:
+					pulses_loop =  pulses_fin.loc[pulses_fin['Channel']==ch]
+					pulses_loop = pulses_loop.sort_values('start')
 
-            LUT_df = pulses_df.loc[pulses_df['module'] == 'DAC']
+					pulses_loop_list.append(pulses_loop)
 
-            if self.debug_mode:
-                print('------------------------------- LUT DEBUGGING DAC ----------------------------------')
+				elif ch == 'loop global':
 
-            event_time_list = list(dict.fromkeys(LUT_df['start']))
-            event_time_list.sort()
+					pulses_loop = loops_df.loc[loops_df['mode']=='global']
+					pulses_loop.at[0,'stop'] = termination_time
+					pulses_loop.at[0,'time'] = termination_time
+					pulses_loop_list.append(pulses_loop)
 
+			fig = make_subplots(rows=len(channel_list), cols=1, shared_xaxes=True)   
 
-            for event_time in event_time_list:
-                event_df = LUT_df.loc[LUT_df['start'] == event_time]
+			if self.debug_mode:
 
-                for index, row in event_df.iterrows():
+				print('\n------------- Sequence display table -------------\n')         
 
-                    ch_num = int(row['ch_num'])
+			for idx, pulses_loop in enumerate(pulses_loop_list):
 
-                    if not(np.isnan(row['start_pointer'])):
-                        if row['LUT']:
-                            pulse_addr = round((len(DAC_pulses_array[ch_num-1]) + row['start_pointer']*1e-6*self.sampling_rate)/11)
-                            last_pointer = pulse_addr
+				if self.debug_mode:
 
-                        else:
-                            pulse_addr =  last_pointer + round((row['start_pointer']*1e-6*self.sampling_rate)/8)
-                            
-                            
-                        DAC_pulses_pointer[ch_num-1].append(pulse_addr)
+					display(pulses_loop)
 
-                        if self.debug_mode:
-                            print('For pulse ' + row['label'])
-                            print('Saved pointer: ' + str(pulse_addr))
+				fig.add_trace(go.Bar(x=pulses_loop.time, y=pulses_loop.Channel, orientation='h', text=pulses_loop.label, marker=dict(color=pulses_loop.color), 
+										customdata=np.dstack((pulses_loop.label, pulses_loop.start, pulses_loop.stop))[0],
+										hovertemplate='label: %{customdata[0]: s} <br>start: %{customdata[1]:.3f} <br>stop: %{customdata[2]:.3f}'), idx + 1, 1)
 
-                    if row['LUT']:
+			if self.debug_mode:
 
-                        SCPI_command = self.pulse_gen_SCPI(row['mode'],row['param'],row['time'],ch_num, mode='DAC')
-                        # adding pulse to waveform
-                        DAC_pulses_array[ch_num-1] = np.append(DAC_pulses_array[ch_num-1],SCPI_command)
+				print('\n------------- Sequence display table -------------\n')
 
+			fig.update_layout(showlegend=False,width=1600,height=200+80*idx,)
+			fig.show()
 
-            if self.debug_mode:
-                print('Pointer tab:')
-                print(DAC_pulses_pointer)
 
+		# store the length of the pulses and the channel used, it is use for data shaping in get_readout_pulse()
+		self.length_vec = length_vec
 
-            for i in range(8):
 
-                if len(DAC_pulses_array[i])>0:
+		return pulses_fin
 
-                    self.write('DAC:DATA:CH{}:CLEAR'.format(str(i+1)))
 
-                    if self.debug_mode and self.debug_mode_plot_waveforms:
 
-                        fig = plt.figure(figsize=(8,5))
-                        plt.plot(range(len(DAC_pulses_array[i])),DAC_pulses_array[i])
-                        plt.grid()
-                        plt.legend(fontsize = 14)
-                        plt.show()
+	def LUT_and_adress_filling(self, pulses_df, ADC=True, DAC=True):
 
-                    DAC_SCPI_cmd = 'DAC:DATA:CH' + str(i+1) + ' 0,' + ','.join((DAC_pulses_array[i].astype(int)).astype(str)) 
+		"""
+		This function take the pulses sequence provided and store the pulses in the LUT of the DAC/ADC. 
+		It also define the pointers that can be used. 
 
-                    # if self.debug_mode and self.debug_mode_waveform_string:
-                    if self.debug_mode_waveform_string:
+		For now three pointers can be defined in the ADC: start/loop/stop. 
+		However, the start pointer cannot be shifted for now (it is set at the beginning of the pulses).
+		Moreover, the loop pointer is set equal to the start pointer.
 
-                        print('DAC sequence for CH '+str(i+1)+': ',DAC_SCPI_cmd)
 
-                    log.info('Writing waveform for CH'+str(i+1)+'  \n')
-                    self.write(DAC_SCPI_cmd)
+		Parameters:
+		pulses_df -- panda DataFrame containing the pulse sequence. 
+		ADC -- LUT and pointer address for the ADC (default True).
+		DAC -- LUT and pointer address for the DAC (default True).
 
-            log.info('Waveform processing complete' + '\n')
+		Return: 
+		DAC_pulses_pointer, ADC_pulses_pointer -- two lists containing the DAC and ADC pointers.
 
-        if ADC:
+		"""
 
-            LUT_df = pulses_df.loc[pulses_df['module'] == 'ADC']
+		DAC_pulses_array = [np.array([]),np.array([]),np.array([]),np.array([]),np.array([]),np.array([]),np.array([]),np.array([])]
+		DAC_pulses_pointer = [[],[],[],[],[],[],[],[]]
 
-            ch_demod_list = LUT_df['ch_demod'].tolist()
-            ch_demod_list = [item for sublist in ch_demod_list for item in sublist]
-            ch_demod_list = set(ch_demod_list)
+		ADC_I_pulses_array = [np.array([]),np.array([]),np.array([]),np.array([]),np.array([]),np.array([]),np.array([]),np.array([])]
+		ADC_Q_pulses_array = [np.array([]),np.array([]),np.array([]),np.array([]),np.array([]),np.array([]),np.array([]),np.array([])]
+		ADC_pulses_pointer = [[[], [], []], [[], [], []], [[], [], []], [[], [], []], [[], [], []] , [[], [], []] , [[], [], []], [[], [], []]]
 
-            for i in range(1,9):
-                if i in ch_demod_list:
-                    if i==1:
-                        self.ADC1.status('ON')
-                        self.ADC1.fmixer(0)
-                    if i==2:
-                        self.ADC2.status('ON')
-                        self.ADC2.fmixer(0)
-                    if i==3:
-                        self.ADC3.status('ON')
-                        self.ADC3.fmixer(0)
-                    if i==4:
-                        self.ADC4.status('ON')
-                        self.ADC4.fmixer(0)
-                    if i==5: 
-                        self.ADC5.status('ON')
-                        self.ADC7.fmixer(0)
-                    if i==6:
-                        self.ADC6.status('ON')
-                        self.ADC6.fmixer(0)
-                    if i==7:
-                        self.ADC7.status('ON')
-                        self.ADC7.fmixer(0)
-                    if i==8:
-                        self.ADC8.status('ON')
-                        self.ADC8.fmixer(0)
 
+		if DAC:
 
-            if self.debug_mode:
-                print('------------------------------- LUT DEBUGGING ADC ----------------------------------')
-                display(LUT_df)
+			LUT_df = pulses_df.loc[(pulses_df['module'] == 'DAC') & (pulses_df['mode'] != 'wait')]
 
+			if self.debug_mode:
 
-            event_time_list = list(dict.fromkeys(LUT_df['start']))
-            event_time_list.sort()
+				print('\n------------------------------- DAC LUT generation and upload ----------------------------------\n')
+				display(LUT_df)
 
-            for event_time in event_time_list:
-                event_df = LUT_df.loc[LUT_df['start'] == event_time]
+			event_time_list = list(dict.fromkeys(LUT_df['start']))
+			event_time_list.sort()
 
-                for index, row in event_df.iterrows():
 
-                    if not(np.isnan(row['start_pointer'])):
+			for event_time in event_time_list:
 
-                        ch_num = int(row['ch_num'])
-                        ch_demod = row['ch_demod']
+				event_df = LUT_df.loc[LUT_df['start'] == event_time]
 
-                        for idx, chd in enumerate(ch_demod):
-                            if row['LUT']:
+				if self.debug_mode:
 
-                                if self.debug_mode:
-                                    print('Pulse not found in ADC memory')
-                                    print('Starting pointer set at: %i'%round(len(ADC_I_pulses_array[chd-1])/8))
+					print('\nCreating LUT map for events at ' + str(event_time))
+					display(event_df)
 
-                                pulse_addr_start = len(ADC_I_pulses_array[chd-1])//8
-                                pulse_addr_loop = pulse_addr_start
+				for index, row in event_df.iterrows():
 
+					ch_num = int(row['ch_num'])
 
-                            else:
-                                pulse_addr_start = ADC_pulses_pointer[chd-1][0][-1]
-                                pulse_addr_stop = ADC_pulses_pointer[chd-1][2][-1]
-                                pulse_addr_loop = ADC_pulses_pointer[chd-1][1][-1]
+					if not(np.isnan(row['start_pointer'])):
 
+						if row['LUT']:
 
-                            if row['LUT']:
-                                if self.debug_mode:
-                                    print('The pulses saved in the LUT are:')
-                                    print(row['mode'], row['LUT'], row['label'])
+							pulse_addr = round((len(DAC_pulses_array[ch_num-1]) + row['start_pointer']*1e-6*self.sampling_rate)/11)
+							last_pointer = pulse_addr
 
-                                if row['mode']=='sin':
-                                    if self.debug_mode:
-                                        print(row['param'])
+							DAC_waveform = self.pulse_gen_SCPI(row['mode'],row['param'],row['time'],ch_num, module='DAC', pulse_label=row['label'])
+							# adding pulse to waveform
+							DAC_pulses_array[ch_num-1] = np.append(DAC_pulses_array[ch_num-1],DAC_waveform)
 
-                                    param_I = row['param'][idx]
-                                    freq_demod = param_I['freq']
+						else:
+							
+							pulse_addr =  last_pointer + round((row['start_pointer']*1e-6*self.sampling_rate)/8)
+							
+						DAC_pulses_pointer[ch_num-1].append(pulse_addr)
 
-                                    if 1e3%freq_demod!=0:
-                                        log.error('Demodulation frequency is not a multiple of the sampling_rate. \
-                                                   As a result, you are not using the loop pointer and the memory \
-                                                   usage of the ADC LUT is suboptimal.')
-                                        time_vec = row['time']
+						if self.debug_mode:
 
+							print('For pulse \"' + row['label'] + '\" LUT pointer at: ' + str(pulse_addr))
+							print()
 
-                                    else:
-                                        period_demod = int(1e3/freq_demod) # in ns
-                                        period_loop = int(1e9/self.sampling_rate*8) # in ns
-                                        time_vec = np.lcm(period_demod, period_loop)*1e-3 # in µs
+					else:
 
-                                        if self.debug_mode:
-                                            print('Demodulation period/ Loop period/ Time vec: ')
-                                            print(period_demod, period_loop, time_vec)
+						log.error('Start pointer not found for ' + row['label'])
 
 
-                                    param_Q = param_I
+			for i in range(8):
 
-                                    param_Q = {**param_I, 'phase_offset': param_I['phase_offset'] + np.pi/2}
+				if len(DAC_pulses_array[i])>0:
 
+					self.write('DAC:DATA:CH{}:CLEAR'.format(str(i+1)))
 
-                                    SCPI_command_I = self.pulse_gen_SCPI(row['mode'], param_I, time_vec, chd, mode='ADC')
-                                    SCPI_command_Q = self.pulse_gen_SCPI(row['mode'], param_Q, time_vec, chd, mode='ADC')
+					if self.debug_mode:
 
-                                    if self.debug_mode:
-                                        print(SCPI_command_I)
+						LUT_points = DAC_pulses_array[i].copy()
+						LUT_points = self.DAC_amplitude_calib[i]*(LUT_points.reshape((-1, 11)).T[:-3].T.reshape((-1)))/(2**13)
 
-                                    ADC_I_pulses_array[chd-1] = np.append(ADC_I_pulses_array[chd-1], SCPI_command_I)
-                                    ADC_Q_pulses_array[chd-1] = np.append(ADC_Q_pulses_array[chd-1], SCPI_command_Q)
+						fig = plt.figure(figsize=(18,5))
+						plt.plot(np.array(range(len(LUT_points)))/2000,LUT_points)
+						plt.grid()
+						plt.title('LUT for DAC ch '+str(i+1),fontsize = 18)
+						# plt.legend(fontsize = 14)
+						plt.show()
 
+					DAC_SCPI_cmd = 'DAC:DATA:CH' + str(i+1) + ' 0,' + ','.join((DAC_pulses_array[i].astype(int)).astype(str)) 
 
+					if self.debug_mode:
 
-                                else:
-                                    log.error('Other functions than sin are not supported for demodulation for now')
+						print('\nDAC sequence for CH '+str(i+1)+':\n',DAC_SCPI_cmd[:40]+'...')
 
+					log.info('Writing waveform for CH'+str(i+1)+'  \n')
+					self.write(DAC_SCPI_cmd)
 
+			log.info('Waveform processing complete' + '\n')
 
-                            pulse_addr_stop = len(ADC_I_pulses_array[chd-1])//8 - 1
+			if self.debug_mode:
 
+				print('\n------------------------------- DAC LUT processing finished ----------------------------------\n')
 
-                            ADC_pulses_pointer[chd-1][0].append(pulse_addr_start)
-                            ADC_pulses_pointer[chd-1][2].append(pulse_addr_stop)
-                            ADC_pulses_pointer[chd-1][1].append(pulse_addr_loop)
+		if ADC and self.acquisition_mode()=='INT':
 
-                            if self.debug_mode:
-                                print('For pulse ' + row['label'])
-                                print('Saved start/loop/stop pointer: ', str(pulse_addr_start), str(pulse_addr_loop), str(pulse_addr_stop))
+			LUT_df = pulses_df.loc[(pulses_df['module'] == 'ADC') & (pulses_df['mode'] != 'wait')]
 
+			if self.debug_mode:
 
-            if self.debug_mode:
-                print('Pointer tab:')
-                print(ADC_pulses_pointer)
+				print('\n------------------------------- ADC LUT generation and upload ----------------------------------\n')
+				display(LUT_df)
 
+			ch_demod_list = LUT_df['ch_demod'].tolist()
+			ch_demod_list = [item for sublist in ch_demod_list for item in sublist]
+			ch_demod_list = set(ch_demod_list)
 
-            # reset memory :
+			for i in range(1,9):
 
-            for i in range(4):
+				if i in ch_demod_list:
 
-                empty_list = str([0]*16384)[1:-1]
-                empty_list.replace(' ', '')
+					if i==1:
+						self.ADC1.status('ON')
+						self.ADC1.fmixer(0)
+					if i==2:
+						self.ADC2.status('ON')
+						self.ADC2.fmixer(0)
+					if i==3:
+						self.ADC3.status('ON')
+						self.ADC3.fmixer(0)
+					if i==4:
+						self.ADC4.status('ON')
+						self.ADC4.fmixer(0)
+					if i==5: 
+						self.ADC5.status('ON')
+						self.ADC7.fmixer(0)
+					if i==6:
+						self.ADC6.status('ON')
+						self.ADC6.fmixer(0)
+					if i==7:
+						self.ADC7.status('ON')
+						self.ADC7.fmixer(0)
+					if i==8:
+						self.ADC8.status('ON')
+						self.ADC8.fmixer(0)
 
-                ADC_SCPI_cmd_I = 'ADC:I' + str(i+1) +' 0,' + empty_list
-                ADC_SCPI_cmd_Q = 'ADC:Q' + str(i+1) +' 0,' + empty_list
+					if self.debug_mode:
 
-                self.write(ADC_SCPI_cmd_I)
-                self.write(ADC_SCPI_cmd_Q)
+						print('Activating ADC channel ' + str(i) + ' for data acquisition.\n')
 
 
-            for i in range(4):
+			event_time_list = list(dict.fromkeys(LUT_df['start']))
+			event_time_list.sort()
 
-                if len(ADC_I_pulses_array[i])>0:
+			for event_time in event_time_list:
 
+				event_df = LUT_df.loc[LUT_df['start'] == event_time]
 
-                    # not implemented for now
-                    # self.write('ADC:DATA:CH{}:CLEAR'.format(str(i+1)))
+				if self.debug_mode:
 
-                    if self.debug_mode and self.debug_mode_plot_waveforms:
+					print('\nCreating LUT map for events at ' + str(event_time))
+					display(event_df)
 
-                        fig, ax = plt.subplots(1, 1, figsize=(8,5))
+				for index, row in event_df.iterrows():
 
-                        ax[0].plot(range(len(ADC_I_pulses_array[i])),ADC_I_pulses_array[i])
-                        ax[1].plot(range(len(ADC_Q_pulses_array[i])),ADC_Q_pulses_array[i])
-                        fig.show()
+					if row['mode']=='sin':
 
+						if not(np.isnan(row['start_pointer'])):
 
+							ch_num = int(row['ch_num'])
+							ch_demod = row['ch_demod']
 
-                    ADC_SCPI_cmd_I = 'ADC:I' + str(i+1) +' 0,' + ','.join((ADC_I_pulses_array[i].astype(int)).astype(str))
-                    ADC_SCPI_cmd_Q = 'ADC:Q' + str(i+1) +' 0,' + ','.join((ADC_Q_pulses_array[i].astype(int)).astype(str))
+							for idx, chd in enumerate(ch_demod):
 
-                    # if self.debug_mode and self.debug_mode_waveform_string:
-                    if self.debug_mode_waveform_string:
+								if row['LUT']:
 
-                        print('ADC sequence for I'+str(i+1)+':', ADC_SCPI_cmd_I)
-                        print('ADC sequence for Q'+str(i+1)+':', ADC_SCPI_cmd_Q)
+									if self.debug_mode:
 
-                    log.info('Writing waveform for I'+str(i+1)+'  \n')
-                    self.write(ADC_SCPI_cmd_I)
+										print('Uploading new LUT for ADC acquisition \"' + row['label'] + '\" with start pointer at: %i'%round(len(ADC_I_pulses_array[chd-1])/8))
+										# print('Starting pointer set at: %i'%round(len(ADC_I_pulses_array[chd-1])/8))
 
-                    log.info('Writing waveform for Q'+str(i+1)+'  \n')
-                    self.write(ADC_SCPI_cmd_Q)
+									pulse_addr_start = len(ADC_I_pulses_array[chd-1])//8
+									pulse_addr_loop = pulse_addr_start
 
-            log.info('Waveform processing complete' + '\n')
+									param_I = row['param'][idx]
+									freq_demod = param_I['freq']
 
-        return DAC_pulses_pointer, ADC_pulses_pointer
+									# -- Error statement needs more explanation : marked for removal
+									#
+									# if 1e3%freq_demod!=0:
+									# 	log.error('Demodulation frequency is not a multiple of the sampling_rate. \
+									# 			   As a result, you are not using the loop pointer and the memory \
+									# 			   usage of the ADC LUT is sub-optimal.')
+									# 	time_vec = row['time']
+									# else:
+									# 	period_demod = int(1e3/freq_demod) # in ns
+									# 	period_loop = int(1e9/self.sampling_rate*8) # in ns
+									# 	time_vec = np.lcm(period_demod, period_loop)*1e-3 # in µs
 
+									param_Q = param_I.copy()
+									param_I['phase_offset'] = 0
+									param_Q['phase_offset'] = np.pi/2
 
-    def process_sequencing_IQ_table(self):
+									waveform_I = self.pulse_gen_ADC_LUT(param_I,row['time'],chd)
+									waveform_Q = self.pulse_gen_ADC_LUT(param_Q,row['time'],chd)
 
-        """
-        This function take the stored pulses sequence and creat the SCPI command 
-        that is sent to the RFSoC sequencer. 
-        It also fill the ADC/DAC LUT via LUT_and_adress_filling()
-        """
+									if self.debug_mode:
 
-        # --- Charging the pulse sequence and the event list
+										fig = plt.figure(figsize=(18,5))
+										plt.plot(np.array(range(len(waveform_I)))/2000,waveform_I/(2**13),label='I')
+										plt.plot(np.array(range(len(waveform_Q)))/2000,waveform_Q/(2**13),label='Q')
+										plt.grid()
+										plt.title('LUT for ADC pulse \"'+row['label']+'\"',fontsize = 18)
+										plt.legend(fontsize = 14)
+										plt.show()
 
-        pulses_df = self.pulses_sequence()
-        event_time_list = list(dict.fromkeys(pulses_df['start']))
-        event_time_list.sort()
-        # temrination time used to close the sequence 
-        termination_time = np.max((np.array(list(pulses_df['stop']))))
+									ADC_I_pulses_array[chd-1] = np.append(ADC_I_pulses_array[chd-1], waveform_I)
+									ADC_Q_pulses_array[chd-1] = np.append(ADC_Q_pulses_array[chd-1], waveform_Q)
 
-        # --- Initialisation of the parameters
+								else:
 
+									log.error('ADC LUT sharing may have bugs and not supported yet.')
 
-        # n_points_total is the total number of acquisitions
-        self.n_points_total = 0
-        # array containing the instructions played by the sequencer
-        global_sequence = np.array([])
-        # load the pointer
-        DAC_pulses_pointer, ADC_pulses_pointer = self.LUT_and_adress_filling(pulses_df)
+									# pulse_addr_start = ADC_pulses_pointer[chd-1][0][-1]
+									# pulse_addr_stop = ADC_pulses_pointer[chd-1][2][-1]
+									# pulse_addr_loop = ADC_pulses_pointer[chd-1][1][-1]
 
 
-        # lists of boolean storing the ADC/DAC state
-        ADC_state = [0,0,0,0,0,0,0,0]
-        DAC_state = [0,0,0,0,0,0,0,0]
-        ADC_state_prev = [0,0,0,0,0,0,0,0]
-        DAC_state_prev = [0,0,0,0,0,0,0,0]
-        self.ADC_ch_active = np.array([0,0,0,0,0,0,0,0])
 
-        # lists storing the ADC/DAC pointer index 
-        pointer_dac = [0,0,0,0,0,0,0,0]
-        pointer_adc = [0,0,0,0]
-        # boolean checking if the repetition started
-        rep_started = False
-        # array used to store with physical ADC is send to which ADC LUT
-        mux_state = np.zeros((4, 4), dtype='int')
+								pulse_addr_stop = len(ADC_I_pulses_array[chd-1])//8 - 1
 
 
+								ADC_pulses_pointer[chd-1][0].append(pulse_addr_start)
+								ADC_pulses_pointer[chd-1][1].append(pulse_addr_loop)
+								ADC_pulses_pointer[chd-1][2].append(pulse_addr_stop)
 
-        # ---  If a repetitions is used it check the number of pulses per repetitions
-        nb_pulses_dac = np.zeros(8)
-        nb_pulses_adc = np.zeros(8)
-        pulses_counter_dac = np.ones(8)
-        pulses_counter_adc = np.ones(8)
+								if self.debug_mode:
+									print('For pulse ' + row['label'] + 'Saved start/loop/stop pointer: ', str(pulse_addr_start), str(pulse_addr_loop), str(pulse_addr_stop))
+									print()
 
-        pulses_rep_all = pulses_df.loc[(pulses_df['rep_nb']>1) & (pulses_df['mode']!='wait')]
-        pulses_rep_dac = pulses_rep_all.loc[(pulses_rep_all['module']=='DAC')]
-        pulses_rep_adc = pulses_rep_all.loc[(pulses_rep_all['module']=='ADC')]
+						else:
 
-        # count the pulses number per dac 
+							log.error('Start pointer not found for ' + row['label'])
 
-        if len(pulses_rep_dac)>0:
-            for index, row in pulses_rep_dac.iterrows():
-                ch_num = int(row['ch_num'])
-                nb_pulses_dac[ch_num - 1] +=1 
+					else:
 
-        # same for the adc 
+						log.error('Only sinusoidal demodulation is supported in current version.')
 
-        if len(pulses_rep_adc)>0:
-            for index, row in pulses_rep_adc.iterrows():
-                ch_demod = row['ch_demod']
-                for chd in ch_demod: 
-                    nb_pulses_adc[chd - 1] +=1
-        
-        # --- Start of the sequence filling 
+			if self.debug_mode:
+				print('\nADC pointer array:')
+				print(ADC_pulses_pointer)
+				print()
 
-        if self.debug_mode:
-            print('*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*')
-            print('*-*-*-*-*-*-*-* Beggining of sequence *-*-*-*-*-*-*-*-*-*-*')
-            print('*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*')
-            print('Events detected at: ',event_time_list)
-            print('Found the following pulses:')
-            display(pulses_df.sort_values('start'))
-            rep_nb = np.max(pulses_df['rep_nb'])
-            print('They will all be played a first time and then the pulses with rep_nb=%i will be played %i times' %(rep_nb, rep_nb))
+			# -- Unclear reset, ADC memory is 128,000 points - marked for removal
+			#
+			# reset memory :
+			#
+			# for i in range(4):
+			# 	empty_list = str([0]*16384)[1:-1]
+			# 	empty_list = empty_list.replace(' ', '')
+			# 	ADC_SCPI_cmd_I = 'ADC:I' + str(i+1) +' 0,' + empty_list
+			# 	ADC_SCPI_cmd_Q = 'ADC:Q' + str(i+1) +' 0,' + empty_list
+			# 	self.write(ADC_SCPI_cmd_I)
+			# 	self.write(ADC_SCPI_cmd_Q)
 
-        for event_time in event_time_list:
-            if event_time>0:
+			for i in range(4):
 
-                # add a waiting time any time it is needed 
-                global_sequence = np.append(global_sequence,1)
-                wait_time = int(round((event_time-event_time_prev)*250) - 1)
-                global_sequence = np.append(global_sequence, wait_time)
+				if len(ADC_I_pulses_array[i])>0:
 
-                if self.debug_mode:
-                    print('adding wait till this event')
-                    print(1,int(round((event_time-event_time_prev)*250)))
+					if self.debug_mode:
 
+						fig = plt.figure(figsize=(18,5))
+						plt.plot(np.array(range(len(ADC_I_pulses_array[i])))/2000,ADC_I_pulses_array[i]/(2**13),label='I')
+						plt.plot(np.array(range(len(ADC_Q_pulses_array[i])))/2000,ADC_Q_pulses_array[i]/(2**13),label='Q')
+						plt.grid()
+						plt.title('LUT for ADC channel(mixer) \"'+str(i+1)+'\"',fontsize = 18)
+						plt.legend(fontsize = 14)
+						plt.show()
 
-            event_time_prev = event_time
+					ADC_SCPI_cmd_I = 'ADC:I' + str(i+1) +' 0,' + ','.join((ADC_I_pulses_array[i].astype(int)).astype(str))
+					ADC_SCPI_cmd_Q = 'ADC:Q' + str(i+1) +' 0,' + ','.join((ADC_Q_pulses_array[i].astype(int)).astype(str))
 
-            # take all events occuring at a given time
-            tmp_df = pulses_df.loc[pulses_df['start'] == event_time]
-            tmp_df = tmp_df.sort_values(by='module', ascending=False)
+					if self.debug_mode:
 
-            for index, row in tmp_df.iterrows():
+						print('ADC sequence for I'+str(i+1)+':', ADC_SCPI_cmd_I[0:50])
+						print('ADC sequence for Q'+str(i+1)+':', ADC_SCPI_cmd_Q[0:50])
 
-                if self.debug_mode:
-                    print('_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _')
-                    print(event_time,row['mode'], row['label'])
-                    print('_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _')
+					log.info('Writing waveform for I'+str(i+1)+'  \n')
+					self.write(ADC_SCPI_cmd_I)
 
-                ch_num = int(row['ch_num'])
+					log.info('Writing waveform for Q'+str(i+1)+'  \n')
+					self.write(ADC_SCPI_cmd_Q)
 
+			log.info('Waveform processing complete' + '\n')
 
-                if row['module'] == 'DAC':
+		elif ADC and self.acquisition_mode()=='RAW':
 
-                    if row['rep_nb']!=1 and not(rep_started):
-                        # add the command indicating the start of the loop if needed
-                        global_sequence = np.append(global_sequence, 257)
-                        global_sequence = np.append(global_sequence, row['rep_nb'] - 1)
-                        rep_started = not(rep_started) # triggers the loop start
+			LUT_df = pulses_df.loc[(pulses_df['module'] == 'ADC') & (pulses_df['mode'] != 'wait')]
 
-                        if self.debug_mode:
-                            print('- - - - - - - LOOP START - - - - - - - - -')
+			ch_on_list = LUT_df['Channel'].tolist()
 
+			for i in ch_on_list:
 
-                    if not(np.isnan(row['start_pointer'])):
-                        # if there is a start pointer it must be a pulse 
+				if int(i[-1])==1:
+					self.ADC1.status('ON')
+					self.ADC1.fmixer(0)
+				if int(i[-1])==2:
+					self.ADC2.status('ON')
+					self.ADC2.fmixer(0)
+				if int(i[-1])==3:
+					self.ADC3.status('ON')
+					self.ADC3.fmixer(0)
+				if int(i[-1])==4:
+					self.ADC4.status('ON')
+					self.ADC4.fmixer(0)
+				if int(i[-1])==5: 
+					self.ADC5.status('ON')
+					self.ADC7.fmixer(0)
+				if int(i[-1])==6:
+					self.ADC6.status('ON')
+					self.ADC6.fmixer(0)
+				if int(i[-1])==7:
+					self.ADC7.status('ON')
+					self.ADC7.fmixer(0)
+				if int(i[-1])==8:
+					self.ADC8.status('ON')
+					self.ADC8.fmixer(0)
 
-                        # set the starting pointer to the correct address 
-                        global_sequence = np.append(global_sequence,4096+ch_num)
-                        global_sequence = np.append(global_sequence,DAC_pulses_pointer[ch_num-1][pointer_dac[ch_num - 1]])
+				if self.debug_mode:
 
-                        if self.debug_mode:
-                            print('adding sequencer command to point to address of this pulse')
-                            print(4096+ch_num,DAC_pulses_pointer[ch_num-1][pointer_dac[ch_num - 1]])
+					print('Activating ADC channel ' + str(i) + ' for data acquisition.\n')
 
+			ADC_pulses_pointer = None
 
-                        # the corresponding DAC is set to ON
-                        DAC_state[7-(ch_num-1)] = 1
-                        if self.debug_mode:
-                            print('DAC state is :', DAC_state)
+		return DAC_pulses_pointer, ADC_pulses_pointer
 
 
-                        # the pointer index of the given channel is updated or not depending on the situation
-                        if not(rep_started):
-                            pointer_dac[ch_num - 1] +=1
-                            if self.debug_mode:
-                                print('Pointer shifted to %i'%pointer_dac[ch_num - 1])
-                        else: 
-                            while pulses_counter_dac[ch_num - 1]<nb_pulses_dac[ch_num - 1]:
-                                pointer_dac[ch_num - 1] +=1
-                                pulses_counter_dac[ch_num - 1] +=1 
+	def process_sequencing_IQ_table(self):
 
-                                if self.debug_mode:
-                                    print('Pointer shifted to %i'%pointer_dac[ch_num - 1])
-                                    print('Pulse counter shifted to %i'%pulses_counter_dac[ch_num - 1])
+		"""
+		This function take the stored pulses sequence and create the SCPI command 
+		that is sent to the RFSoC sequencer. 
+		It also fills the ADC/DAC LUT via LUT_and_adress_filling()
+		"""
 
+		# --- Charging the pulse sequence and the event list
 
-                    if row['mode'] == 'wait':
-                        # we switch off the correponding DAC, the waiting command is set at the next iteration
-                        DAC_state[7-(ch_num-1)] = 0
-                        if self.debug_mode:
-                            print('DAC state is :', DAC_state)
+		pulses_df = self.pulses_sequence()
+		seq_looping = self.seq_looping
+		event_time_list = list(dict.fromkeys(pulses_df['start']))
+		event_time_list.sort()
+		# termination time used to close the sequence 
+		termination_time = np.max((np.array(list(pulses_df['stop']))))
 
+		# --- Initialization of the parameters
+		
+		# array containing the instructions played by the sequencer
+		global_sequence = np.array([])
+		global_sequence_info = []
+		# load the pointer
+		DAC_pulses_pointer, ADC_pulses_pointer = self.LUT_and_adress_filling(pulses_df)
 
-                if row['module'] == 'ADC':
 
-                    if self.debug_mode:
-                        print(row['mode'])
+		# lists of boolean storing the ADC/DAC state
+		ADC_state = [0,0,0,0,0,0,0,0]
+		DAC_state = [0,0,0,0,0,0,0,0]
+		ADC_state_prev = [0,0,0,0,0,0,0,0]
+		DAC_state_prev = [0,0,0,0,0,0,0,0]
+		self.ADC_ch_active = np.array([0,0,0,0,0,0,0,0])
 
+		# map for LUT ADC
+		LUT_ADC_map = np.array(np.identity(4))*0
 
-                    # initialisation of the ADC to ADC LUT connection for this step
-                    mux_step = ['000', '000', '000', '000']
+		# lists storing the ADC/DAC pointer index 
+		pointer_dac = [0,0,0,0,0,0,0,0]
+		pointer_adc = [0,0,0,0,0,0,0,0]
+		# boolean checking if the repetition started
+		rep_started = False
+		# array used to store with physical ADC is send to which ADC LUT
+		mux_state = np.zeros((4, 4), dtype='int')
 
-                    ch_demod = row['ch_demod']
 
-                    if row['rep_nb']!=1 and not(rep_started):
 
-                        # add the command indicating the start of the loop if needed
-                        global_sequence = np.append(global_sequence, 257)
-                        global_sequence = np.append(global_sequence, row['rep_nb'] - 1)
+		# # ---  If a repetitions is used it check the number of pulses per repetitions
+		# nb_pulses_dac = np.zeros(8)
+		# nb_pulses_adc = np.zeros(8)
+		# pulses_counter_dac = np.ones(8)
+		# pulses_counter_adc = np.ones(8)
 
-                        rep_started = not(rep_started)
+		# pulses_rep_all = pulses_df.loc[(pulses_df['rep_nb']>1) & (pulses_df['mode']!='wait')]
+		# pulses_rep_dac = pulses_rep_all.loc[(pulses_rep_all['module']=='DAC')]
+		# pulses_rep_adc = pulses_rep_all.loc[(pulses_rep_all['module']=='ADC')]
 
-                        if self.debug_mode:
-                            print('- - - - - - - LOOP START - - - - - - - - -')
+		# # count the pulses number per dac 
 
-                    if self.debug_mode:
-                        print(mux_state)
+		# if len(pulses_rep_dac)>0:
 
+		# 	for index, row in pulses_rep_dac.iterrows():
 
-                    if row['mode'] != 'wait':
+		# 		ch_num = int(row['ch_num'])
+		# 		nb_pulses_dac[ch_num - 1] +=1 
 
-                        # --- Update the ADC to ADC LUT connection
+		# # same for the adc 
 
-                        for k in ch_demod:
-                            # check that the given ADC is not ON, if not no change in the routing
-                            if ch_num == 1 and ADC_state[7-(ch_num-1)] == 0:
-                                # check that the given ADC LUT is not already used  
-                                if k ==1 and np.sum(mux_state[:, 0])==0:
-                                    mux_step[0] = '000' # binary corresponding to the routing
-                                    mux_state[ch_num-1, 0] = 1 # indicate that the ADC LUT is used 
-                                elif k ==2 and np.sum(mux_state[:, 1])==0:
-                                    mux_step[1] = '001'
-                                    mux_state[ch_num-1, 1] = 1
-                                elif k ==3 and np.sum(mux_state[:, 2])==0:
-                                    mux_step[2] ='010'
-                                    mux_state[ch_num-1, 2] = 1
-                                elif k ==4 and np.sum(mux_state[:, 3])==0:
-                                    mux_step[3] ='010'
-                                    mux_state[ch_num-1, 3] = 1
-                                else: log.error('Incompatible mixing tables for ch%i'%ch_num)
-                            elif ch_num == 2 and ADC_state[7-(ch_num-1)] == 0:
-                                if k ==1 and np.sum(mux_state[:, 0])==0:
-                                    mux_step[0]='001'
-                                    mux_state[ch_num-1, 0] = 1
-                                elif k ==2 and np.sum(mux_state[:, 1])==0:
-                                    mux_step[1] = '000'
-                                    mux_state[ch_num-1, 1] = 1
-                                elif k ==3 and np.sum(mux_state[:, 2])==0:
-                                    mux_step[2] ='011'
-                                    mux_state[ch_num-1, 2] = 1
-                                elif k ==4 and np.sum(mux_state[:, 3])==0:
-                                    mux_step[3] ='011'
-                                    mux_state[ch_num-1, 3] = 1
-                                else: log.error('Incompatible mixing tables ch%i'%ch_num)
-                            elif ch_num ==3  and ADC_state[7-(ch_num-1)] == 0:
-                                if k ==1 : log.error('Incompatible mixing tables')
-                                elif k ==2 : log.error('Incompatible mixing tables')
-                                elif k ==3 and np.sum(mux_state[:, 2])==0:
-                                 mux_step[2] = '000'
-                                 mux_state[ch_num-1, 2] = 1
-                                elif k ==4 and np.sum(mux_state[:, 3]):
-                                 mux_step[3] ='001'
-                                 mux_state[ch_num-1, 3] = 1
-                                else: log.error('Incompatible mixing tables ch%i'%ch_num)
-                            elif ch_num ==4 and ADC_state[7-(ch_num-1)] == 0:
-                                if k ==1 : log.error('Incompatible mixing tables')
-                                elif k ==2 : log.error('Incompatible mixing tables')
-                                elif k ==3 and np.sum(mux_state[:, 2])==0:
-                                 mux_step[2] ='001'
-                                 mux_state[ch_num-1, 2] = 1
-                                elif k ==4 and np.sum(mux_state[:, 3])==0:
-                                 mux_step[3] = '000'
-                                 mux_state[ch_num-1, 3] = 1
-                                else: log.error('Incompatible mixing tables ch%i'%ch_num)
+		# if len(pulses_rep_adc)>0:
+		# 	for index, row in pulses_rep_adc.iterrows():
+		# 		ch_demod = row['ch_demod']
+		# 		for chd in ch_demod: 
+		# 			nb_pulses_adc[chd - 1] +=1
+		
+		# # --- Start of the sequence filling 
 
-                            else:
-                                log.error('Cannot use other channels than 1, 2, 3 or 4 for the IQ_table mode')
+		if self.debug_mode:
 
-                            if self.debug_mode:
-                                print('The Mux state:')
-                                print(mux_state)
-                                print('The Mux table:')
-                                print(mux_step)
+			print('\n\n\n------------------------------- Generating the sequence commands ----------------------------------\n')
+			display(pulses_df.sort_values('start'))
 
+		for event_time in event_time_list:
 
-                        # --- Sequence filling for ADC type command
+			if event_time>0:
 
-                        for idx, chd in enumerate(ch_demod):
+				# add a waiting time any time it is needed 
+				global_sequence = np.append(global_sequence,1)
+				wait_time = int(round((event_time-event_time_prev)*250) - 1)
+				global_sequence = np.append(global_sequence, wait_time)
 
+				global_sequence_info.append('adding wait till the event at ' + str(event_time))
 
-                            #  --- creation of the bit string storing the mixer state and the start pointer 
-                            bin_cmd = mux_step[chd - 1] # mixer routing
-                            bin_cmd += '1' # set the mixer to ON
-                            bin_cmd += '00000000000000'# used bit
+				if self.debug_mode:
 
-                            # convert the pointer postition in binary 
-                            bin_start = bin(ADC_pulses_pointer[chd - 1][0][pointer_adc[chd - 1]])[2:]
+					print(global_sequence_info[-1])
+					print('Seq instruction : ',global_sequence[-2],global_sequence[-1])
+					print()
 
-                            # fill the unused bits 
-                            len_bit_start = len(bin_start)
-                            bin_start_add = [0] * (14 - len_bit_start)
-                            bin_start_add = str(bin_start_add)[1:-1].replace(', ', '')
+			event_time_prev = event_time
 
-                            # add the two bit staring
-                            bin_cmd += bin_start_add
-                            bin_cmd += bin_start
+			# take all events occurring at a given time
+			tmp_df = pulses_df.loc[pulses_df['start'] == event_time]
+			tmp_df = tmp_df.sort_values(by='module', ascending=False)
 
-                            # add the mixer state and the start pointer for the given demod channel
-                            global_sequence = np.append(global_sequence, 4128+(chd - 1)*2)
-                            global_sequence = np.append(global_sequence, int(bin_cmd,2))
+			if self.debug_mode:
 
-                            if self.debug_mode:
-                                print('ADC pointer/ demod ch/ pointer ADC:')
-                                print(ADC_pulses_pointer, chd, pointer_adc)
-                                print('adding sequencer the mixer state and the starting_pointer:')
-                                print('binary command:', bin_cmd)
-                                print(4128+2*(chd - 1), int(bin_cmd,2))
+					print('Creating sequence entry for events at ' + str(event_time))
+					display(tmp_df)
 
+			for index, row in tmp_df.iterrows():
 
+				ch_num = int(row['ch_num'])
 
-                            # --- creation of the bit string storing the loop and stop pointer
+				if row['module'] == 'DAC':
 
-                            # convert the pointer postitions in binary 
-                            bin_loop = bin(ADC_pulses_pointer[chd - 1][1][pointer_adc[chd - 1]])[2:]
-                            bin_stop = bin(ADC_pulses_pointer[chd - 1][2][pointer_adc[chd - 1]])[2:]
+					if row['mode'] != 'wait':
 
+						# set the starting pointer to the correct address 
+						global_sequence = np.append(global_sequence,4096+ch_num)
+						global_sequence = np.append(global_sequence,DAC_pulses_pointer[ch_num-1][pointer_dac[ch_num-1]])
 
-                            # fill the unused bits
-                            len_bit_loop = len(bin_loop)
-                            bin_loop_add = [0] * (14 - len_bit_loop)
-                            bin_loop_add = str(bin_loop_add)[1:-1].replace(', ', '')
-                            bin_loop = bin_loop_add + bin_loop
+						global_sequence_info.append('Adding sequencer command to point to address of \"' + row['label'] + '\"')
 
-                            len_bit_stop = len(bin_stop)
-                            bin_stop_add = [0] * (14 - len_bit_stop)
-                            bin_stop_add = str(bin_stop_add)[1:-1].replace(', ', '')
-                            bin_stop = bin_stop_add + bin_stop
+						pointer_dac[ch_num-1] += 1
 
-                            # add the two bit strings 
-                            bin_cmd = '00' + bin_loop + '00' + bin_stop
+						if self.debug_mode:
 
-                            # add loop and stop pointer for the given demod channel
-                            global_sequence = np.append(global_sequence, 4129+(chd - 1)*2)
-                            global_sequence = np.append(global_sequence, int(bin_cmd,2))
+							print(global_sequence_info[-1])
+							print('Seq instruction : ',global_sequence[-2],global_sequence[-1])
+							print()
 
-                            if self.debug_mode:
-                                print('adding sequencer the loop and stopping pointer:')
-                                print('binary command:', bin_cmd)
-                                print(4129+2*(chd - 1), int(bin_cmd,2))
+						# the corresponding DAC is set to ON
+						DAC_state[(ch_num-1)] = 1
 
+						if self.debug_mode:
 
-                            # add the number of points the ADC LUT should take 
-                            global_sequence = np.append(global_sequence,4107 + (chd - 1))
-                            global_sequence = np.append(global_sequence,int(row['time']*1e-6*self.sampling_rate))
+							print('DAC state is :', DAC_state)
+							print()
 
+					if row['mode'] == 'wait':
 
-                            if self.debug_mode:
-                                print('adding sequencer command to set acq points')
-                                print(4106+(chd - 1),int(row['time']*1e-6*self.sampling_rate))
+						# we switch off the corresponding DAC, the waiting command is set at the next iteration
+						DAC_state[(ch_num-1)] = 0
 
+						if self.debug_mode:
 
-                            # change the ADC LUT to ON 
-                            ADC_state[7-(chd-1)] = 1
-                            self.ADC_ch_active[chd-1] = 1
+							print('DAC state is :', DAC_state)
 
-                            if self.debug_mode:
-                                print('ADC state is :', ADC_state)
 
+				if row['module'] == 'ADC':
 
-                            # the pointer index of the given channel is updated or not depending on the situation
-                            if not(rep_started):
-                                pointer_adc[chd - 1] +=1
-                            else: 
-                                while pulses_counter_adc[chd - 1] < nb_pulses_adc[chd- 1]:
-                                    pointer_adc[chd - 1] +=1
-                                    pulses_counter_adc[chd - 1] +=1 
+					ch_demod = row['ch_demod']
+					ADC_ch = int(row['ch_num'])
+					LUT_ADC_map_prev = LUT_ADC_map.copy()
 
-                        self.n_points_total += row['rep_nb']
+					if row['mode'] != 'wait':
 
+						# change the ADC to ON 
 
-                    elif row['mode'] == 'wait':
-                        ch_demod = row['ch_demod']
-                        for idx, chd in enumerate(ch_demod):
-                            ADC_state[7-(chd-1)] = 0
-                            # reset the mixer state of the switched off channel
-                            mux_state[chd - 1, :] = np.zeros(4)
+						ADC_state[ADC_ch-1] = 1
 
-                            if self.debug_mode:
-                                print('ADC state is :', ADC_state)
+						if self.debug_mode:
 
+							print('ADC state is :', ADC_state)
+							print()
 
-            # ---  Update of the ADC and DAC state at every time step 
+						# add the number of points the ADC LUT should take 
+						global_sequence = np.append(global_sequence,4106 + ADC_ch)
+						global_sequence = np.append(global_sequence,int(row['time']*1e-6*self.sampling_rate))
 
-            if DAC_state != DAC_state_prev or ADC_state != ADC_state_prev:
+						global_sequence_info.append('Adding sequencer command to set number of acquisition points to ' + str(int(row['time']*1e-6*self.sampling_rate)))
 
-                if self.debug_mode:
-                    print('ADC state updated from %s to %s'%(ADC_state_prev, ADC_state))
-                    print('DAC state updated from %s to %s'%(DAC_state_prev, DAC_state))
+						if self.debug_mode:
 
+							print(global_sequence_info[-1])
+							print('Seq instruction : ',global_sequence[-2],global_sequence[-1])
+							print()
 
-                # update the ADC state 
-                bin_adc_cmd = str(ADC_state)[1:-1].replace(', ', '')
-                bin_dac_cmd = ''
+						if self.acquisition_mode()=='INT':
 
-                # update the DAC state
-                for i in range(8):
-                    if DAC_state[i] != DAC_state_prev[i]:
-                        if DAC_state[i] == 1:
-                            bin_dac_cmd += '011'
-                            DAC_state_prev[i] = 1
-                        else:
-                            bin_dac_cmd += '001'
-                            DAC_state_prev[i] = 0
-                    else:
-                        bin_dac_cmd +='000'
+							# --- Update the ADC to ADC LUT connection
 
-                # add the two bit strings and add the command to update states 
-                bin_trig_cmd = bin_adc_cmd + bin_dac_cmd
-                global_sequence = np.append(global_sequence,4096)
-                global_sequence = np.append(global_sequence,int(bin_trig_cmd,2))
+							if self.debug_mode:
 
-                ADC_state_prev = ADC_state.copy()
+								print('ADC 1-4 LUT Map : ')
+								pprint(LUT_ADC_map)
 
-                if self.debug_mode:
-                    print('Bit string of the DAC state:')
-                    print(bin_dac_cmd)
-                    print('Bit string of the ADC state')
-                    print(bin_adc_cmd)
-                    print('The command is: ')
-                    print(4096, int(bin_trig_cmd,2))
+							for k in list(map(int,ch_demod)):
 
-            else :
-                if self.debug_mode:
-                    print('No ADC or DAC update at this state')
-                    print('ADC previous: %s  / ADC step : %s'%(ADC_state_prev, ADC_state))
-                    print('DAC previous: %s  / DAC step : %s'%(DAC_state_prev, DAC_state))
+								LUT_ADC_map[ADC_ch-1][k-1] = 1
 
+							# --- test validity of ADC map
 
+							mux_state = np.sum(LUT_ADC_map, axis=0)
+							mux_state_valid = True
 
-        # --- Add a last waiting time if needing 
+							for k in range(len(mux_state)):
 
-        wait_term = int(round((termination_time - event_time)*250))-1
-        global_sequence = np.append(global_sequence,1)
-        global_sequence = np.append(global_sequence,wait_term)
+								if mux_state[i]>1:
 
-        if self.debug_mode:
-            print('Terminate by wait of : %f' %(wait_term + 1))
+									mux_state_valid = False
+									log.error('mux state validity issue, are you trying to use one mixer for multiple demods?')
 
+							for k in range(2,4):
 
-        # Switch off all the DAC/ADC 
-        global_sequence = np.append(global_sequence,4096)
-        global_sequence = np.append(global_sequence,0)
+								for l in range(0,2):
 
-        # Close the loop if it was open
-        if rep_started:
-            global_sequence = np.append(global_sequence, 513)
-            global_sequence = np.append(global_sequence, 0)
+									if LUT_ADC_map[k,l] != 0:
 
+										mux_state_valid = False
+										log.error('mux state validity issue, invalid channel mixing!')
 
-        # --- Set the Acquisition mode 
-        if self.acquisition_mode() == 'RAW':
-            acq_mode = 0
-        elif self.acquisition_mode() == 'INT':
-            acq_mode = 286331153
-        else:
-            log.error('Invalid acquisition mode\n')
+							if self.debug_mode:
 
+								print('Updated ADC 1-4 LUT Map : ')
+								pprint(LUT_ADC_map)
+								print('mux state validity registered as: ' + str(mux_state_valid))
 
-        # if n_points()>1 we add a global loop 
-        if self.n_points() > 1:
-            period_sync = int(self.FPGA_clock/self.freq_sync())
-            global_sequence_str = 'SEQ 0,1,9,4106,' + str(acq_mode) + ',258,' + str(int(self.n_points()-1)) + ',' + ','.join((global_sequence.astype(int)).astype(str))  + ',514,0,0,0'
 
-        else :
-            global_sequence_str = 'SEQ 0,1,9,4106,' + str(acq_mode) + ',' + ','.join((global_sequence.astype(int)).astype(str)) + ',0,0'
+							# --- Sequence filling for ADC type command
+							if mux_state_valid and not(np.array_equal(LUT_ADC_map_prev,LUT_ADC_map)):
 
-        if self.debug_mode:
-            print('Sequence programmer command: ',global_sequence_str)
+								mux_config_for_ch = self._mux_config_matrix[ADC_ch-1]
 
-        # --- Send the SCPI command 
-        log.info('Writing global sequence' + '\n')
-        self.write(global_sequence_str)
+								for k in range(4):
 
-        # Update the total acquisition points 
-        self.n_points_total *=self.n_points()
+									chd = k+1
 
-        # reset the pointer indexes
-        pointer_adc = [0,0,0,0,0,0,0,0]
-        pointer_dac = [0,0,0,0,0,0,0,0]
+									if LUT_ADC_map[ADC_ch-1][k] == 1:
 
+										param_id_1 = 4128 + 2*k
+										param_id_2 = 4129 + 2*k
 
-    def pulse_gen_SCPI(self,function,param,duration,ch, mode):
+										if k<2:
 
-        """
-        This function convert the pulses parameters into a 1D array of Volt amplitude in bit scale.
-        This is used in LUT_and_adress_filling() to creat the SCPI command. 
+											mux_b31 = str(mux_config_for_ch[k])
+											mux_b30_b29 = '00'
+											mux_b28 = '1'
 
-        Parameters: 
-        function -- (str) function to generate, can be 'sin+sin' for a sum of sin
-        'sin' for a sin, 'trigger' for a trigger and 'DC' for a DC channel 
-        param --  list containing the function parameters
-        duration -- (float) pulse duration 
-        ch --  (int) LUT channel
-        mode -- (str) 'DAC' or 'ADC'
+										else:
 
-        return: 
-        wavepoints -- 1D array of points that will be stored in the LUT 
-        """
+											mux_b31 = '0'
+											mux_b30_b29 = bin(int(mux_config_for_ch[k]))[2:].zfill(2)
+											mux_b28 = '1'
 
-        period = 1./self.sampling_rate
-        time_vec = np.arange(period,duration*1e-6+period/2,period)
-        # stop vector used to separate different pulses in a channel 
-        stop_vector = np.array([0,0,0,0,0,0,0,0,0,0,16383])
+										mux_b27_to_b14 = '0'*14
 
-        if function == 'sin+sin':
+										iqram_addr_start = bin(ADC_pulses_pointer[chd - 1][0][pointer_adc[chd - 1]])[2:].zfill(14)
+										iqram_addr_loop = bin(ADC_pulses_pointer[chd - 1][1][pointer_adc[chd - 1]])[2:].zfill(14)
+										iqram_addr_stop = bin(ADC_pulses_pointer[chd - 1][2][pointer_adc[chd - 1]])[2:].zfill(14)
 
-            wavepoints1 = ((2**13)*self.DAC_amplitude_calib[ch-1]*param['amp1']*np.sin(-param['phase_offset1'] - 1) + 2*np.pi*param['freq1']*1e6*time_vec)
-            wavepoints2 = ((2**13)*self.DAC_amplitude_calib[ch-1]*param['amp2']*np.sin(-param['phase_offset2'] - 1) + 2*np.pi*param['freq2']*1e6*time_vec)
+										param_val_1 = int(mux_b31 + mux_b30_b29 + mux_b28 + mux_b27_to_b14 + iqram_addr_start, 2)
+										param_val_2 = int('0'*2 + iqram_addr_loop + '0'*2 + iqram_addr_stop, 2)
 
-            wavepoints = ((2**13)*self.DAC_amplitude_calib[ch-1]*param['dc_offset'] - 1)+ wavepoints1 + wavepoints2
+										global_sequence = np.append(global_sequence, param_id_1)
+										global_sequence = np.append(global_sequence, param_val_1)
+										global_sequence = np.append(global_sequence, param_id_2)
+										global_sequence = np.append(global_sequence, param_val_2)
 
-            # check if some points are above the limit imposed by the 13 bits
-            idx_of = np.nonzero(((wavepoints > 8191) | (wavepoints < -8192)))[0]
-            if len(np.nonzero(wavepoints[idx_of] != 16381)[0])>0:
-                if mode =='DAC':
-                    log.error('Error when filling the DAC memory: maximal amplitude is over the resolution') 
-                elif mode == 'ADC':
-                    log.error('Error when filling the ADC memory: maximal amplitude is over the resolution') 
+										global_sequence_info.append('Adding sequencer command to configure mux for ADC ch ' + str(ADC_ch) + ' and demod_ch ' + str(k))
+										global_sequence_info.append('Adding sequencer command to configure mux for ADC ch ' + str(ADC_ch) + ' and demod_ch ' + str(k))
 
+										if self.debug_mode:
 
-            if self.debug_mode and self.debug_mode_plot_waveforms:
-                print('plot of sinsin mode 1')
-                fig = plt.figure(figsize=(8,5))
-                plt.plot(time_vec,wavepoints1)
-                plt.grid()
-                plt.show()
-                print('plot of sinsin mode 2')
-                fig = plt.figure(figsize=(8,5))
-                plt.plot(time_vec,wavepoints2)
-                plt.grid()
-                plt.show()
-                print('plot of sinsin mode total')
-                fig = plt.figure(figsize=(8,5))
-                plt.plot(time_vec,wavepoints)
-                plt.grid()
-                plt.show()
+											print(global_sequence_info[-1])
+											print('Seq instruction : ',global_sequence[-4],global_sequence[-3])
+											print('Seq instruction : ',global_sequence[-2],global_sequence[-1])
+											print()
 
+										# the pointer index of the given channel is updated or not depending on the situation
+										pointer_adc[k] += 1
 
-            if mode == 'DAC':
+						elif self.acquisition_mode()=='RAW':
 
-                # --- When using 'DAC' every 8 points you insert trigger bits that define the trigger states 
+							param_id_1 = 4128 + 2*(ADC_ch-1)
 
-                # adding zeros to make length multiple of 8
-                wavepoints = np.append(wavepoints,np.zeros(len(time_vec)%8))
-                trig_rep_len = int(len(wavepoints)/8)
-                # adding trigger vectors
-                wavepoints = np.concatenate((wavepoints.reshape(trig_rep_len,8), np.array(np.zeros(trig_rep_len))[:,None]),axis=1)
-                wavepoints = np.concatenate((wavepoints, np.array(np.zeros(trig_rep_len))[:,None]),axis=1)
+							mux_b31 = '0'
+							mux_b30_b29 = '00'
+							mux_b28 = '0'
 
-                # adding repetation (0 for once)
-                wavepoints = np.concatenate((wavepoints, np.array(np.zeros(trig_rep_len))[:,None]),axis=1)
-                # convert to 1D array
-                wavepoints = wavepoints.reshape(1,len(wavepoints)*len(wavepoints[0]))
+							mux_b27_to_b14 = '0'*14
+							mux_b13_to_b0 = '0'*14
 
-                wavepoints =  wavepoints[0]
-                wavepoints = np.append(wavepoints,stop_vector)
+							param_val_1 = int(mux_b31 + mux_b30_b29 + mux_b28 + mux_b27_to_b14 + mux_b13_to_b0, 2)
 
-                
+							global_sequence = np.append(global_sequence, param_id_1)
+							global_sequence = np.append(global_sequence, param_val_1)
 
+							global_sequence_info.append('Adding sequencer command to turn off mux for ADC ch ' + str(ADC_ch))
 
+							if self.debug_mode:
 
-        elif function == 'sin':
+								print(global_sequence_info[-1])
+								print('Seq instruction : ',global_sequence[-4],global_sequence[-3])
+								print('Seq instruction : ',global_sequence[-2],global_sequence[-1])
+								print()
 
-            wavepoints = ((2**13)*self.DAC_amplitude_calib[ch-1]*param['dc_offset'] - 1) + ((2**13)*self.DAC_amplitude_calib[ch-1]*param['amp'] - 1)*np.sin(-param['phase_offset'] + 2*np.pi*param['freq']*1e6*time_vec)
+					elif row['mode'] == 'wait':
 
-            idx_of = np.nonzero(((wavepoints > 8191) | (wavepoints < -8192)))[0]
-            if len(np.nonzero(wavepoints[idx_of] != 16381)[0])>0:
-                if mode =='DAC':
-                    log.error('Error when filling the DAC memory: maximal amplitude is over the resolution') 
-                elif mode == 'ADC':
-                    log.error('Error when filling the ADC memory: maximal amplitude is over the resolution') 
+						ADC_state[ADC_ch-1] = 0
 
-            if self.debug_mode and self.debug_mode_plot_waveforms:
-                print('plot of sin mode')
-                fig = plt.figure(figsize=(8,5))
-                plt.plot(time_vec*1e9,wavepoints)
-                plt.grid()
-                plt.legend(fontsize = 14)
-                plt.show()
+						if self.debug_mode:
 
-            if mode == 'DAC':
+							print('Wait pulse - ADC state is :', ADC_state)
+							print()
 
-                # adding zeros to make length multiple of 8
-                wavepoints = np.append(wavepoints,np.zeros(len(time_vec)%8))
-                trig_rep_len = int(len(wavepoints)/8)
-                # adding trigger vectors
-                wavepoints = np.concatenate((wavepoints.reshape(trig_rep_len,8), np.array(np.zeros(trig_rep_len))[:,None]),axis=1)
-                wavepoints = np.concatenate((wavepoints, np.array(np.zeros(trig_rep_len))[:,None]),axis=1)
+			# ---  Update of the ADC and DAC state at every time step 
 
-                # adding repetation (0 for once)
-                wavepoints = np.concatenate((wavepoints, np.array(np.zeros(trig_rep_len))[:,None]),axis=1)
-                # convert to 1D array
-                wavepoints = wavepoints.reshape(1,len(wavepoints)*len(wavepoints[0]))
+			if DAC_state != DAC_state_prev or ADC_state != ADC_state_prev:
 
-                wavepoints =  wavepoints[0]
-                wavepoints = np.append(wavepoints,stop_vector)
+				if self.debug_mode:
 
+					print('ADC state updated from %s to %s'%(ADC_state_prev, ADC_state))
+					print('DAC state updated from %s to %s'%(DAC_state_prev, DAC_state))
 
+				# update the ADC state 
+				bin_adc_cmd = ''.join(map(str,reversed(ADC_state)))
 
+				# update the DAC state
+				bin_dac_cmd = ''
 
-        elif function == 'trigger':
+				for i in reversed(range(8)):
 
-            wavepoints = np.zeros_like(time_vec) # only zeros
+					if DAC_state[i] != DAC_state_prev[i]:
 
-            # adding zeros to make length multiple of 8
-            wavepoints = np.append(wavepoints,np.zeros(len(time_vec)%8))
+						if DAC_state[i] == 1:
 
-            trig_rep_len = int(len(wavepoints)/8)
-            # adding trigger vectors
-            wavepoints = np.concatenate((wavepoints.reshape(trig_rep_len,8), np.array(np.ones(trig_rep_len))[:,None]),axis=1) # marker 1 in UP position
-            wavepoints = np.concatenate((wavepoints, np.array(np.zeros(trig_rep_len))[:,None]),axis=1)
+							bin_dac_cmd += '011'
+							DAC_state_prev[i] = 1
 
-            # adding repetation (0 for once)
-            wavepoints = np.concatenate((wavepoints, np.array(np.zeros(trig_rep_len))[:,None]),axis=1)
+						else:
 
-            # convert to 1D array
-            wavepoints = wavepoints.reshape(1,len(wavepoints)*len(wavepoints[0]))
+							bin_dac_cmd += '001'
+							DAC_state_prev[i] = 0
 
-            wavepoints =  wavepoints[0]
-            wavepoints = np.append(wavepoints,stop_vector)
+					else:
 
+						bin_dac_cmd +='000'
 
-        elif function == 'DC':
+				# add the two bit strings and add the command to update states 
+				bin_ADC_DAC_state = bin_adc_cmd + bin_dac_cmd
 
-            amplitude = (2**13)*self.DAC_amplitude_calib[ch-1]*param['amp']
+				global_sequence = np.append(global_sequence,4096)
+				global_sequence = np.append(global_sequence,int(bin_ADC_DAC_state,2))
 
-            total_nop = int(duration * 1e-6 / period)
-            # we want the decomposition total_nop = 8 * ( (N_segments-1)*16381 + remainder_loops ) + remainder_nop
-            remainder_nop = total_nop % 8
-            N_loops = total_nop // 8
+				global_sequence_info.append('Updating ADC DAC state')
 
-            N_segments = N_loops // 16381    # we need to loop N_segments full segments (8 points)
-            remainder_loops = N_loops % 16381    # (N_segments - 1) will be looped 16381 times and one will be looped the remainder_loops times
-            if remainder_loops:
-                N_segments += 1
+				ADC_state_prev = ADC_state.copy()
 
-            wavepoints = amplitude * np.ones(8*N_segments + remainder_nop) # reduced number of points used thanks to loops
-            # adding zeros to make length multiple of 8
-            if remainder_nop:
-                wavepoints = np.append(wavepoints,np.zeros(8 - remainder_nop))
+				if self.debug_mode:
 
-            trig_rep_len = int(len(wavepoints)/8)
-            # adding trigger vectors
-            wavepoints = np.concatenate((wavepoints.reshape(trig_rep_len,8), np.array(np.zeros(trig_rep_len))[:,None]),axis=1)
-            wavepoints = np.concatenate((wavepoints, np.array(np.zeros(trig_rep_len))[:,None]),axis=1)
+					print('Bit string of the DAC state: ',bin_dac_cmd)
+					print('Bit string of the ADC state: ',bin_adc_cmd)
+					print()
+					print('Seq instruction : ',global_sequence[-2],global_sequence[-1])
+					print()
 
-            # add repetitions (remainder_loops for first segment, 0 for last segment, 16381 for the rest of them)
-            if remainder_nop:
-                rep_arr = 16381 * np.ones(N_segments + 1)
-                rep_arr[-1] = 0
-            else:
-                rep_arr = 16381 * np.ones(N_segments)
-            if remainder_loops:
-                rep_arr[0] = remainder_loops
-            wavepoints = np.concatenate((wavepoints, rep_arr[:,None]),axis=1)
+			else :
 
-            # convert to 1D array
-            wavepoints = wavepoints.reshape(1,len(wavepoints)*len(wavepoints[0]))
+				if self.debug_mode:
 
-            wavepoints = wavepoints[0]
-            wavepoints = np.append(wavepoints,stop_vector)
+					print('No ADC or DAC update at this state')
+					print('ADC previous: %s  / ADC step : %s'%(ADC_state_prev, ADC_state))
+					print('DAC previous: %s  / DAC step : %s'%(DAC_state_prev, DAC_state))
+					print()
 
 
-        else:
 
-            log.error('Wrong waveform mode: ',function)
+		# --- Add a last waiting time if needed
 
+		wait_term = int(round((termination_time - event_time)*250))-1
+		global_sequence = np.append(global_sequence,1)
+		global_sequence = np.append(global_sequence,wait_term)
 
-        if len(wavepoints) > 128000: 
-            if mode == 'DAC':
-                log.error('Error when filling the DAC memory : to many points, maximal number is 128000 while you are asking for %i'%len(wavepoints))
-            if mode == 'ADC':
-                log.error('Error when filling the ADC memory : to many points, maximal number is 128000 while you are asking for %i'%len(wavepoints))
+		global_sequence_info.append('Terminate by wait of : %f' %(wait_term + 1))
 
-        return wavepoints
+		if self.debug_mode:
 
+			print(global_sequence_info[-1])
+			print('Seq instruction : ',global_sequence[-2],global_sequence[-1])
 
-    def start_play(self):
-        """
-        This function can be used while debugging the driver. 
-        It asks three times for the data and print the output
-        list and it length
-        """
+		# Switch off all the DAC/ADC 
+		global_sequence = np.append(global_sequence,4096)
+		global_sequence = np.append(global_sequence,int('00000000001001001001001001001001',2))
 
-        self.write("SEQ:STOP")
-        time.sleep(0.1)
-        self.write("SEQ:START")
-        time.sleep(0.1)
-        for k in range(3):
-            try:
-                 r = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
-                            is_big_endian=False)
-            except:
-                 r=[]
-            if self.debug_mode:
-                print(len(r), r)
+		global_sequence_info.append('Reached end - switch off all the DAC/ADC')
 
+		# --- Set the Acquisition mode 
+		if self.acquisition_mode() == 'RAW':
+			acq_mode = 0
+		elif self.acquisition_mode() == 'INT':
+			acq_mode = 286331153
+		else:
+			log.error('Invalid acquisition mode\n')
 
-    def stop_play(self):
+		# if global loop is programmed we add it to the sequence 
+		try:
+			global_rep = int(seq_looping['rep'].where(seq_looping['mode'] == 'global'))
+		except:
+			global_rep = 1
 
-        self.write("SEQ:STOP")
+		if global_rep > 1:
 
+			global_sequence_str = 'SEQ 0,1,9,4106,' + str(acq_mode) + ',258,' + str(int(global_rep-1)) + ',' + ','.join((global_sequence.astype(int)).astype(str))  + ',514,0,0,0'
 
-    def reset_PLL(self):
+		else :
 
-        self.write("DAC:RELAY:ALL 0")
-        self.write("PLLINIT")
-        time.sleep(5)
-        self.write("DAC:RELAY:ALL 1")
+			global_sequence_str = 'SEQ 0,1,9,4106,' + str(acq_mode) + ',' + ','.join((global_sequence.astype(int)).astype(str)) + ',0,0'
 
+		if self.debug_mode:
 
-    def reset_output_data(self):
-        try:
-            r = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
-                is_big_endian=False)
-        except:
-            r=[]
+			print('Sequence programmer command: ',global_sequence_str[:50])
 
+		# --- Send the SCPI command 
+		log.info('Writing global sequence' + '\n')
+		self.write(global_sequence_str)
 
-    def get_readout_pulse(self):
+		# Update class variables 
+		self.n_points_total = global_rep
+		self.ADC_ch_active = ADC_state
+		self.global_sequence_str  = global_sequence_str
+		self.global_sequence  = global_sequence
+		self.global_sequence_info = global_sequence_info
 
-        '''
-         This function reformat the data reading the header contents.
-        '''
 
-        self.reset_output_data()
-        mode = self.acquisition_mode()
-        n_rep = int(self.n_points_total)
-        length_vec = self.length_vec
-        ch_vec = self.ch_vec
-        # N_adc_events = len(ch_vec) # to be discussed with Arpit
-        N_adc_events = len(np.unique(ch_vec))
-        if self.debug_mode:
-            len_data_all = 0
-        # print(N_adc_events, ch_vec)
-        #print(length_vec)
-        # n_pulses = len(length_vec[0]) # to be discussed with Arpit
 
+	def pulse_gen_ADC_LUT(self,param,duration,ch):
 
-        ch_active = self.ADC_ch_active
+		"""
+		This functions separates the pulse generation for ADC LUTs, 
+		disentangling the calibration of channel and module specific 
+		calibration.
+		"""
 
-        if mode == 'INT':
+		period = 1./self.sampling_rate
+		time_vec = np.arange(period,duration*1e-6+period/2,period)
 
-            data_unsorted = {}
-            count_meas = 0
-            empty_packet_count = 0
-            run_num = 0
+		wavepoints = ((2**13)*self.ADC_amplitude_calib[ch-1]*param['amp'] - 1)*np.sin(-param['phase_offset'] + 2*np.pi*param['freq']*1e6*time_vec)
 
-            getting_valid_dataset = True
+		idx_of = np.nonzero(((wavepoints > 8191) | (wavepoints < -8192)))[0]
+		if len(np.nonzero(wavepoints[idx_of] != 16381)[0])>0:
+			if module =='ADC':
+				log.error('Error when filling the ADC memory: maximal amplitude is over the resolution') 
+			elif module == 'ADC':
+				log.error('Error when filling the ADC memory: maximal amplitude is over the resolution') 
 
-            if self.display_IQ_progress:
+		return wavepoints
 
-                self.display_IQ_progress_bar = IntProgress(min=0, max=n_rep) # instantiate the bar
-                display(self.display_IQ_progress_bar) # display the bar
 
 
-            self.write("SEQ:STOP")
-            time.sleep(0.1)
-            self.write("SEQ:START")
-            time.sleep(0.1)
+	def pulse_gen_SCPI(self,mode,param,duration,ch, module, pulse_label='unknown'):
 
-            while getting_valid_dataset:
+		"""
+		This function convert the pulses parameters into a 1D array of Volt amplitude in bit scale.
+		This is used in LUT_and_adress_filling() to create the SCPI command. 
 
-                while (count_meas//(16*N_adc_events))<n_rep:
+		Parameters: 
+		function -- (str) function to generate, can be 'sin+sin' for a sum of sin
+		'sin' for a sin, 'trigger' for a trigger and 'DC' for a DC channel 
+		param --  list containing the function parameters
+		duration -- (float) pulse duration 
+		ch --  (int) LUT channel
+		module -- (str) 'DAC' or 'ADC'
 
+		return: 
+		wavepoints -- 1D array of points that will be stored in the LUT 
+		"""
 
+		period = 1./self.sampling_rate
+		time_vec = np.arange(period,duration*1e-6+period/2,period)
+		# stop vector used to separate different pulses in a channel 
+		stop_vector = np.array([0,0,0,0,0,0,0,0,0,0,16383])
 
-                    if self.loop_time: 
-                        a = datetime.datetime.now()
+		if mode == 'sin+sin':
 
+			wavepoints1 = ((2**13)*self.DAC_amplitude_calib[ch-1]*param['amp1']*np.sin(-param['phase_offset1'] - 1) + 2*np.pi*param['freq1']*1e6*time_vec)
+			wavepoints2 = ((2**13)*self.DAC_amplitude_calib[ch-1]*param['amp2']*np.sin(-param['phase_offset2'] - 1) + 2*np.pi*param['freq2']*1e6*time_vec)
 
-                    try:
-                        r = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
-                            is_big_endian=False)
-                    except:
-                        r=[]
+			wavepoints = ((2**13)*self.DAC_amplitude_calib[ch-1]*param['dc_offset'] - 1)+ wavepoints1 + wavepoints2
 
-                    if self.debug_mode: 
-                        if len(r)>1:
-                            len_data_all +=len(r)
-                        # print(len_data_all)
+			# check if some points are above the limit imposed by the 13 bits
+			idx_of = np.nonzero(((wavepoints > 8191) | (wavepoints < -8192)))[0]
+			if len(np.nonzero(wavepoints[idx_of] != 16381)[0])>0:
 
+				if module =='DAC':
+					log.error('Error when filling the DAC memory: maximal amplitude is over the resolution') 
+				elif module == 'ADC':
+					log.error('Error when filling the ADC memory: maximal amplitude is over the resolution') 
 
 
-                    if self.loop_time: 
-                        b = datetime.datetime.now()
-                        print('\nget data: ',b-a)
+			if self.debug_mode and self.debug_mode_plot_waveforms:
 
-                    if r == 'ERR':
+				fig = plt.figure(figsize=(18,5))
+				plt.plot(np.array(range(len(wavepoints1)))/2000,wavepoints1/(2**13))
+				plt.grid()
+				plt.title('LUT for DAC pulse \"'+pulse_label+'\" sin1',fontsize = 18)
+				# plt.legend(fontsize = 14)
+				plt.show()
 
-                        log.error('rfSoC: Instrument returned ERR!')
+				fig = plt.figure(figsize=(18,5))
+				plt.plot(np.array(range(len(wavepoints2)))/2000,wavepoints2/(2**13))
+				plt.grid()
+				plt.title('LUT for DAC pulse \"'+pulse_label+' sin2\"',fontsize = 18)
+				# plt.legend(fontsize = 14)
+				plt.show()
 
-                        # reset measurement
-                        data_unsorted = {}
-                        count_meas = 0
-                        run_num = 0
-                        self.write("SEQ:STOP")
-                        time.sleep(2)
-                        while True:
-                            try:
-                                junk = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
-                            is_big_endian=False)
-                            except:
-                                junk = []
-                            time.sleep(0.1)
-                            if junk == []:
-                                break
-                        junk = []
-                        self.write("SEQ:START")
-                        time.sleep(0.1)
+				fig = plt.figure(figsize=(18,5))
+				plt.plot(np.array(range(len(wavepoints)))/2000,wavepoints/(2**13))
+				plt.grid()
+				plt.title('LUT for DAC pulse \"'+pulse_label+' total\"',fontsize = 18)
+				# plt.legend(fontsize = 14)
+				plt.show()
 
-                        continue
 
-                    elif len(r)>1:
+			if module == 'DAC':
 
-                        data_unsorted['{}'.format(run_num)] = r
-                        r_size = len(r)
-                        count_meas += r_size
-                        if self.display_IQ_progress:
-                            self.display_IQ_progress_bar.value = count_meas//(16*N_adc_events)
-                        run_num += 1
-                        time.sleep(0.01)
+				# --- When using 'DAC' every 8 points you insert trigger bits that define the trigger states 
 
+				# adding zeros to make length multiple of 8
+				wavepoints = np.append(wavepoints,np.zeros(len(time_vec)%8))
+				trig_rep_len = int(len(wavepoints)/8)
+				# adding trigger vectors
+				wavepoints = np.concatenate((wavepoints.reshape(trig_rep_len,8), np.array(np.zeros(trig_rep_len))[:,None]),axis=1)
+				wavepoints = np.concatenate((wavepoints, np.array(np.zeros(trig_rep_len))[:,None]),axis=1)
 
-                    elif r==[]: # new empty packet?
+				# adding repetation (0 for once)
+				wavepoints = np.concatenate((wavepoints, np.array(np.zeros(trig_rep_len))[:,None]),axis=1)
+				# convert to 1D array
+				wavepoints = wavepoints.reshape(1,len(wavepoints)*len(wavepoints[0]))
 
-                        time.sleep(0.1)
-                        self.write("SEQ:STOP")
-                        try:
-                            junk = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
-                            is_big_endian=False)
-                        except:
-                            junk = []
-                        time.sleep(0.1)
-                        if junk ==[]:
-                            break
-                        junk = []
+				wavepoints =  wavepoints[0]
+				# wavepoints = np.append(wavepoints,stop_vector)
 
-                        self.write("SEQ:START")
-                        time.sleep(0.1)
-                        continue
+				
 
 
-                if count_meas//(16*N_adc_events) == n_rep:
 
-                    getting_valid_dataset = False
+		elif mode == 'sin':
 
-                else:
+			wavepoints = ((2**13)*self.DAC_amplitude_calib[ch-1]*param['dc_offset'] - 1) + ((2**13)*self.DAC_amplitude_calib[ch-1]*param['amp'] - 1)*np.sin(-param['phase_offset'] + 2*np.pi*param['freq']*1e6*time_vec)
 
-                    log.error('Data curruption: rfSoC did not send all data points({}/'.format(count_meas//(16*N_adc_events))+str(n_rep)+').')
+			idx_of = np.nonzero(((wavepoints > 8191) | (wavepoints < -8192)))[0]
+			if len(np.nonzero(wavepoints[idx_of] != 16381)[0])>0:
+				if module =='DAC':
+					log.error('Error when filling the DAC memory: maximal amplitude is over the resolution') 
+				elif module == 'ADC':
+					log.error('Error when filling the ADC memory: maximal amplitude is over the resolution') 
 
-                    # reset measurement
-                    data_unsorted = []
-                    count_meas = 0
-                    empty_packet_count = 0
-                    self.write("SEQ:STOP")
-                    time.sleep(2)
-                    while True:
-                        try:
-                            junk = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
-                            is_big_endian=False)
-                        except:
-                                junk = []
+			if self.debug_mode:
+				
+				fig = plt.figure(figsize=(18,5))
+				plt.plot(np.array(range(len(wavepoints)))/2000,wavepoints/(2**13))
+				plt.grid()
+				plt.title('LUT for DAC pulse \"'+pulse_label+'\"',fontsize = 18)
+				# plt.legend(fontsize = 14)
+				plt.show()
 
-                        time.sleep(0.1)
-                        if junk == []:
-                            break
-                    junk = []
-                    self.write("SEQ:START")
-                    time.sleep(0.1)
+			if module == 'DAC':
 
-            self.write("SEQ:STOP")
+				# adding zeros to make length multiple of 8
+				wavepoints = np.append(wavepoints,np.zeros(len(time_vec)%8))
+				trig_rep_len = int(len(wavepoints)/8)
+				# adding trigger vectors
+				wavepoints = np.concatenate((wavepoints.reshape(trig_rep_len,8), np.array(np.zeros(trig_rep_len))[:,None]),axis=1)
+				wavepoints = np.concatenate((wavepoints, np.array(np.zeros(trig_rep_len))[:,None]),axis=1)
 
-            '''
-                Process data
-            '''
+				# adding repetation (0 for once)
+				wavepoints = np.concatenate((wavepoints, np.array(np.zeros(trig_rep_len))[:,None]),axis=1)
+				# convert to 1D array
+				wavepoints = wavepoints.reshape(1,len(wavepoints)*len(wavepoints[0]))
 
-            # data_unsorted = list(chain.from_iterable(data_unsorted.values()))
-            data_unsorted = functools.reduce(operator.iconcat, list(data_unsorted.values()), [])
-            data_unsorted = np.array(data_unsorted,dtype=int)
+				wavepoints =  wavepoints[0]
+				# wavepoints = np.append(wavepoints,stop_vector)
 
-            # separate header from IQ data
-            raw_IQ_data_dump_header = data_unsorted.reshape(int(len(data_unsorted)/8),8)[0::2]
-            raw_I_data_dump_data = data_unsorted.reshape(int(len(data_unsorted)/8),8)[1::2][:,0:4]
-            raw_Q_data_dump_data = data_unsorted.reshape(int(len(data_unsorted)/8),8)[1::2][:,4:8]
 
-            # extract channel number from first byte of header
-            ch_num = (raw_IQ_data_dump_header%256).T[0]
 
-            # extract number of accumulated points for normalization from 3rd to 6th byte of header
-            num_points = np.frombuffer(np.stack((raw_IQ_data_dump_header.T[1], raw_IQ_data_dump_header.T[2]), axis=1).astype('int16').tobytes(), dtype=np.long)
 
-            # vectors indicating channel that the data originated from
-            ch_1 = ch_num*(ch_num == np.ones(len(ch_num)))
-            ch_2 = ch_num*(ch_num == 2*np.ones(len(ch_num)))/2
-            ch_3 = ch_num*(ch_num == 3*np.ones(len(ch_num)))/3
-            ch_4 = ch_num*(ch_num == 4*np.ones(len(ch_num)))/4
-            ch_5 = ch_num*(ch_num == 5*np.ones(len(ch_num)))/5
-            ch_6 = ch_num*(ch_num == 6*np.ones(len(ch_num)))/6
-            ch_7 = ch_num*(ch_num == 7*np.ones(len(ch_num)))/7
-            ch_8 = ch_num*(ch_num == 8*np.ones(len(ch_num)))/8
+		elif mode == 'trigger':
 
-            # data conversion form four 16 bit integers to one 64 bit longlong (*(0.3838e-3/16))
-            I_all_data = 2 + np.frombuffer(raw_I_data_dump_data.astype('int16').tobytes(), dtype=np.longlong)*0.3838e-3/(16*num_points)
-            Q_all_data = 2 + np.frombuffer(raw_Q_data_dump_data.astype('int16').tobytes(), dtype=np.longlong)*0.3838e-3/(16*num_points)
+			wavepoints = np.zeros_like(time_vec) # only zeros
 
+			# adding zeros to make length multiple of 8
+			wavepoints = np.append(wavepoints,np.zeros(len(time_vec)%8))
 
-            # --- may be adapted for more advanced data shaping 
+			trig_rep_len = int(len(wavepoints)/8)
+			# adding trigger vectors
+			wavepoints = np.concatenate((wavepoints.reshape(trig_rep_len,8), np.array(np.ones(trig_rep_len))[:,None]),axis=1) # marker 1 in UP position
+			wavepoints = np.concatenate((wavepoints, np.array(np.zeros(trig_rep_len))[:,None]),axis=1)
 
-            # I = [((I_all_data*ch_1)[I_all_data*ch_1!=0]-2).reshape(n_rep*ch_active[0],n_pulses).T,
-            #      ((I_all_data*ch_2)[I_all_data*ch_2!=0]-2).reshape(n_rep*ch_active[1],n_pulses).T,
-            #      ((I_all_data*ch_3)[I_all_data*ch_3!=0]-2).reshape(n_rep*ch_active[2],n_pulses).T,
-            #      ((I_all_data*ch_4)[I_all_data*ch_4!=0]-2).reshape(n_rep*ch_active[3],n_pulses).T,
-            #      ((I_all_data*ch_5)[I_all_data*ch_5!=0]-2).reshape(n_rep*ch_active[4],n_pulses).T,
-            #      ((I_all_data*ch_6)[I_all_data*ch_6!=0]-2).reshape(n_rep*ch_active[5],n_pulses).T,
-            #      ((I_all_data*ch_7)[I_all_data*ch_7!=0]-2).reshape(n_rep*ch_active[6],n_pulses).T,
-            #      ((I_all_data*ch_8)[I_all_data*ch_8!=0]-2).reshape(n_rep*ch_active[7],n_pulses).T]
-            # Q = [((Q_all_data*ch_1)[Q_all_data*ch_1!=0]-2).reshape(n_rep*ch_active[0],n_pulses).T,
-            #      ((Q_all_data*ch_2)[Q_all_data*ch_2!=0]-2).reshape(n_rep*ch_active[1],n_pulses).T,
-            #      ((Q_all_data*ch_3)[Q_all_data*ch_3!=0]-2).reshape(n_rep*ch_active[2],n_pulses).T,
-            #      ((Q_all_data*ch_4)[Q_all_data*ch_4!=0]-2).reshape(n_rep*ch_active[3],n_pulses).T,
-            #      ((Q_all_data*ch_5)[Q_all_data*ch_5!=0]-2).reshape(n_rep*ch_active[4],n_pulses).T,
-            #      ((Q_all_data*ch_6)[Q_all_data*ch_6!=0]-2).reshape(n_rep*ch_active[5],n_pulses).T,
-            #      ((Q_all_data*ch_7)[Q_all_data*ch_7!=0]-2).reshape(n_rep*ch_active[6],n_pulses).T,
-            #      ((Q_all_data*ch_8)[Q_all_data*ch_8!=0]-2).reshape(n_rep*ch_active[7],n_pulses).T]
+			# adding repetation (0 for once)
+			wavepoints = np.concatenate((wavepoints, np.array(np.zeros(trig_rep_len))[:,None]),axis=1)
 
+			# convert to 1D array
+			wavepoints = wavepoints.reshape(1,len(wavepoints)*len(wavepoints[0]))
 
+			wavepoints =  wavepoints[0]
+			wavepoints = np.append(wavepoints,stop_vector)
 
-            I = [((I_all_data*ch_1)[I_all_data*ch_1!=0]-2),
-                 ((I_all_data*ch_2)[I_all_data*ch_2!=0]-2),
-                 ((I_all_data*ch_3)[I_all_data*ch_3!=0]-2),
-                 ((I_all_data*ch_4)[I_all_data*ch_4!=0]-2),
-                 ((I_all_data*ch_5)[I_all_data*ch_5!=0]-2),
-                 ((I_all_data*ch_6)[I_all_data*ch_6!=0]-2),
-                 ((I_all_data*ch_7)[I_all_data*ch_7!=0]-2),
-                 ((I_all_data*ch_8)[I_all_data*ch_8!=0]-2)]
-            Q = [((Q_all_data*ch_1)[Q_all_data*ch_1!=0]-2),
-                 ((Q_all_data*ch_2)[Q_all_data*ch_2!=0]-2),
-                 ((Q_all_data*ch_3)[Q_all_data*ch_3!=0]-2),
-                 ((Q_all_data*ch_4)[Q_all_data*ch_4!=0]-2),
-                 ((Q_all_data*ch_5)[Q_all_data*ch_5!=0]-2),
-                 ((Q_all_data*ch_6)[Q_all_data*ch_6!=0]-2),
-                 ((Q_all_data*ch_7)[Q_all_data*ch_7!=0]-2),
-                 ((Q_all_data*ch_8)[Q_all_data*ch_8!=0]-2)]
 
-        elif mode == 'RAW':
+		elif mode == 'DC':
 
+			amplitude = (2**13)*self.DAC_amplitude_calib[ch-1]*param['amp']
 
-            self.reset_output_data()
+			total_nop = int(duration * 1e-6 / period)
+			# we want the decomposition total_nop = 8 * ( (N_segments-1)*16381 + remainder_loops ) + remainder_nop
+			remainder_nop = total_nop % 8
+			N_loops = total_nop // 8
 
-            #for now we consider only the one same type of acq on all adc
-            mode=self.acquisition_mode.get()
+			N_segments = N_loops // 16381    # we need to loop N_segments full segments (8 points)
+			remainder_loops = N_loops % 16381    # (N_segments - 1) will be looped 16381 times and one will be looped the remainder_loops times
+			if remainder_loops:
+				N_segments += 1
 
-            for index in range(8):
-                length_vec[index] = np.unique(length_vec[index])
+			wavepoints = amplitude * np.ones(8*N_segments + remainder_nop) # reduced number of points used thanks to loops
+			# adding zeros to make length multiple of 8
+			if remainder_nop:
+				wavepoints = np.append(wavepoints,np.zeros(8 - remainder_nop))
 
+			trig_rep_len = int(len(wavepoints)/8)
+			# adding trigger vectors
+			wavepoints = np.concatenate((wavepoints.reshape(trig_rep_len,8), np.array(np.zeros(trig_rep_len))[:,None]),axis=1)
+			wavepoints = np.concatenate((wavepoints, np.array(np.zeros(trig_rep_len))[:,None]),axis=1)
 
-            getting_valid_dataset = True
+			# add repetitions (remainder_loops for first segment, 0 for last segment, 16381 for the rest of them)
+			if remainder_nop:
+				rep_arr = 16381 * np.ones(N_segments + 1)
+				rep_arr[-1] = 0
+			else:
+				rep_arr = 16381 * np.ones(N_segments)
+			if remainder_loops:
+				rep_arr[0] = remainder_loops
+			wavepoints = np.concatenate((wavepoints, rep_arr[:,None]),axis=1)
 
-            while getting_valid_dataset:
+			# convert to 1D array
+			wavepoints = wavepoints.reshape(1,len(wavepoints)*len(wavepoints[0]))
 
-                adcdataI = [[],[],[],[],[],[],[],[]]
-                adcdataQ = [[],[],[],[],[],[],[],[]]
+			wavepoints = wavepoints[0]
+			wavepoints = np.append(wavepoints,stop_vector)
 
-                rep=[]
 
-                keep_trying = True
-                nb_try = 0
+		else:
 
-                self.write("SEQ:STOP")
-                time.sleep(0.1)
-                self.write("SEQ:START")
-                time.sleep(0.1)
-                i = 0
+			log.error('Wrong waveform mode: ',mode)
 
-                while keep_trying:
-                    try:
-                        r = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
-                            is_big_endian=False)
-                    except:
-                        r=[]
 
+		if len(wavepoints) > 128000: 
+			if module == 'DAC':
+				log.error('Error when filling the DAC memory : to many points, maximal number is 128000 while you are asking for %i'%len(wavepoints))
+			if module == 'ADC':
+				log.error('Error when filling the ADC memory : to many points, maximal number is 128000 while you are asking for %i'%len(wavepoints))
 
-                    if self.debug_mode: 
-                        if len(r)>1:
-                            len_data_all +=len(r)
-                        print(len_data_all)
+		return wavepoints
 
-                    if r == 'ERR':
 
-                        log.error('rfSoC: Instrument returned ERR!')
+	def start_play(self):
+		"""
+		This function can be used while debugging the driver. 
+		It asks three times for the data and print the output
+		list and it length
+		"""
 
-                        # reset measurement
-                        rep = []
-                        empty_packet_count = 0
-                        self.write("SEQ:STOP")
-                        time.sleep(2)
-                        while True:
-                            try:
-                                junk = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
-                                    is_big_endian=False)
-                            except:
-                                junk=[]
+		self.write("SEQ:STOP")
+		time.sleep(0.1)
+		self.write("SEQ:START")
+		time.sleep(0.1)
+		for k in range(3):
+			try:
+				 r = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
+							is_big_endian=False)
+			except:
+				 r=[]
+			if self.debug_mode:
+				print(len(r), r)
 
-                            # print(junk)
-                            time.sleep(0.1)
-                            if junk == []:
-                                break
-                        junk = []
-                        nb_try +=1
-                        self.write("SEQ:START")
-                        time.sleep(0.1)
 
-                        continue
+	def stop_play(self):
 
-                    if len(r)>1:
+		self.write("SEQ:STOP")
 
-                        rep = rep+r
-                        nb_try = 0
 
-                    elif r==[]:
-                        try:
-                            junk = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
-                            is_big_endian=False)
-                        except:
-                                junk = []
-                        if junk == []:
-                            junk = []
-                            keep_trying = False
+	def reset_PLL(self, force_reset=False):
 
-                self.write("SEQ:STOP")
-                nb_try = 0
+		perform_PLL_reset = False
 
-                i=0
-                TSMEM=0
-                while (i + 8 )<= len(rep) : # at least one header left
+		if force_reset:
 
-                    entete = np.array(rep[i:i+8])
-                    X =entete.astype('int16').tobytes()
-                    V = X[0]-1 # channel (1 to 8)
-                    DSPTYPE = X[1]
-                    #N does not have the same meaning depending on DSTYPE
-                    N = struct.unpack('I',X[2:6])[0]
-                    #number of acquisition points in continuous
-                    #depends on the point length
-                    NpCont = X[7]*256 + X[6]
-                    TS= struct.unpack('Q',X[8:16])[0]
+			perform_PLL_reset = True
 
-                    # print the header for each packet
-                    # print("Channel={}; N={}; DSP_type={}; TimeStamp={}; Np_Cont={}; Delta_TimeStamp={}".format(V,N,DSPTYPE,TS,NpCont,TS-TSMEM))
+		else:
 
-                    TSMEM=TS
+			pll_status = self.ask('PLLINIT?')
 
-                    iStart=i+8
-                    # if not in continuous acq mode
-                    if ((DSPTYPE &  0x2)!=2):
-                        # raw adcdata for each Np points block
-                        if ((DSPTYPE  &  0x1)==0):
-                            Np=N
-                            adcdataI[V]=np.concatenate((adcdataI[V], np.right_shift(rep[iStart:iStart+Np],4)*0.3838e-3))
+			if pll_status == 0:
 
-                        #in the accumulation mode, only 1 I and Q point even w mixer OFF
-                        #mixer ON or OFF
-                        if ((DSPTYPE  & 0x01)==0x1):
-                            Np=8
-                            D=np.array(rep[iStart:iStart+Np])
-                            X = D.astype('int16').tobytes()
+				perform_PLL_reset = True
 
-                            #I  dvided N and 2 bcse signed 63 bits aligned to the left
-                            # mod div by 4 to fix amplitude -Arpit, Martina
-                            I=  struct.unpack('q',X[0:8])[0]*(0.3838e-3)/(N*2*4)
-                            Q=  struct.unpack('q',X[8:16])[0]*(0.3838e-3)/(N*2*4)
+		if perform_PLL_reset:
 
-                            # print the point
-                            # print("I/Q:",I,Q,"Amplitude:",np.sqrt(I*I+Q*Q),"Phase:",180*np.arctan2(I,Q)/np.pi)
+			self.write("DAC:RELAY:ALL 0")
+			self.write("PLLINIT")
+			time.sleep(5)
+			self.write("DAC:RELAY:ALL 1")
+			print('PLL reset complete.')
 
-                            adcdataI[V]=np.append(adcdataI[V], I)
-                            adcdataQ[V]=np.append(adcdataQ[V], Q)
+		else:
 
+			print('PLL already initialized.')
 
-                    #in our case we dont need the continuous mode for now
-                    # continuoous acquisition mode with accumulation (reduce the flow of data)
-                    elif ((DSPTYPE &  0x3)==0x3):
-                        # mixer OFF : onlyI @2Gs/s or 250Ms/s
-                        if ((DSPTYPE  & 0x20)==0x0):
-                            # points are already averaged in the PS part
-                            # format : 16int
-                            Np = NpCont
-                            adcdataI[V]=np.concatenate((adcdataI[V], np.right_shift(rep[iStart:iStart+Np],4)*0.3838e-3))
 
-                        # mixer ON : I and Q present
-                        elif ((DSPTYPE  & 0x20)==0x20):
-                            Np = NpCont
-                            adcdataI[V]=np.concatenate((adcdataI[V],np.right_shift(rep[iStart:Np:2],4)*0.3838e-3))
-                            adcdataQ[V]=np.concatenate((adcdataQ[V], np.right_shift(rep[iStart+1:Np:2],4)*0.3838e-3))
+	def reset_output_data(self):
+		try:
+			r = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
+				is_big_endian=False)
+		except:
+			r=[]
 
 
-                    i = iStart+Np # index of the new data block, new header
+	def get_readout_pulse(self):
 
-                # print("********************************************************************")
-                # print(len(rep),"Pts treated in ",time.perf_counter()-tstart,"seconds")
-                # print("********************************************************************")
+		'''
+		 This function reformat the data reading the header contents.
+		'''
 
-                #reshaping results
+		self.reset_output_data()
+		mode = self.acquisition_mode()
+		n_rep = int(self.n_points_total)
+		length_vec = self.length_vec
+		ch_vec = self.ADC_events
+		N_adc_events = len(ch_vec) # to be discussed with Arpit
+		# N_adc_events = len(np.unique(ch_vec))
+		if self.debug_mode:
+			len_data_all = 0
+		#print(length_vec)
+		n_pulses = int(len(ch_vec)/len(np.unique(ch_vec))) # will need updating for general case
+		# n_pulses = len(length_vec[0]) # to be discussed with Arpit
 
-                points_rec = 0
-                points_expected = 0
 
-                for index in range(8):
+		ch_active = self.ADC_ch_active
 
-                    if len(adcdataI[index]) > 0:
+		if mode == 'INT':
 
-                        points_rec += adcdataI[index].size
+			data_unsorted = {}
+			count_meas = 0
+			empty_packet_count = 0
+			run_num = 0
 
-                    points_expected += int(n_rep * np.sum(length_vec[index],dtype=int))
+			getting_valid_dataset = True
 
-                if points_rec == points_expected:
+			if self.display_IQ_progress:
 
-                    getting_valid_dataset = False
-                    if self.debug_mode:
-                        print(adcdataI)
+				self.display_IQ_progress_bar = IntProgress(min=0, max=n_rep) # instantiate the bar
+				display(self.display_IQ_progress_bar) # display the bar
 
-                    adcdataI=[np.array(adcdataI[v]).reshape(n_rep,np.sum(length_vec[v],dtype=int)) for v in range(8)]
+			self.write("SEQ:STOP")
+			time.sleep(0.1)
+			self.write("SEQ:START")
+			time.sleep(0.1)
 
-                    I,Q = adcdataI,adcdataQ
+			while getting_valid_dataset:
 
-                else:
+				while (count_meas//(16*N_adc_events))<n_rep:
 
-                    log.error('Data curruption: rfSoC did not send all data points({}/'.format(points_rec)+str(points_expected)+').')
+					if self.loop_time: 
+						a = datetime.datetime.now()
 
-        else:
+					try:
+						r = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
+							is_big_endian=False)
+					except:
+						r=[]
 
-            log.error('rfSoC: Instrument mode not recognized.')
+					if self.debug_mode: 
+						if len(r)>1:
+							len_data_all +=len(r)
+						# print(len_data_all)
 
-        return I,Q
+					if self.loop_time: 
+						b = datetime.datetime.now()
+						print('\nget data: ',b-a)
+
+					if r == 'ERR':
+
+						log.error('rfSoC: Instrument returned ERR!')
+
+						# reset measurement
+						data_unsorted = {}
+						count_meas = 0
+						run_num = 0
+						self.write("SEQ:STOP")
+						time.sleep(2)
+						while True:
+							try:
+								junk = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
+							is_big_endian=False)
+							except:
+								junk = []
+							time.sleep(0.1)
+							if junk == []:
+								break
+						junk = []
+						self.write("SEQ:START")
+						time.sleep(0.1)
+
+						continue
+
+					elif len(r)>1:
+
+						data_unsorted['{}'.format(run_num)] = r
+						r_size = len(r)
+						count_meas += r_size
+						if self.display_IQ_progress:
+							self.display_IQ_progress_bar.value = count_meas//(16*N_adc_events)
+						run_num += 1
+						time.sleep(0.01)
+
+
+					elif r==[]: # new empty packet?
+
+						time.sleep(0.1)
+						self.write("SEQ:STOP")
+						try:
+							junk = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
+							is_big_endian=False)
+						except:
+							junk = []
+						time.sleep(0.1)
+						if junk ==[]:
+							break
+						junk = []
+
+						self.write("SEQ:START")
+						time.sleep(0.1)
+						continue
+
+				if count_meas//(16*N_adc_events) == n_rep:
+
+					getting_valid_dataset = False
+
+				else:
+
+					log.error('Data corruption: rfSoC did not send all data points({}/'.format(count_meas//(16*N_adc_events))+str(n_rep)+').')
+
+					# reset measurement
+					data_unsorted = {}
+					count_meas = 0
+					empty_packet_count = 0
+					self.write("SEQ:STOP")
+					time.sleep(2)
+					while True:
+						try:
+							junk = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
+							is_big_endian=False)
+						except:
+								junk = []
+
+						time.sleep(0.1)
+						if junk == []:
+							break
+					junk = []
+					self.write("SEQ:START")
+					time.sleep(0.1)
+
+			self.write("SEQ:STOP")
+
+			'''
+				Process data
+			'''
+
+			# data_unsorted = list(chain.from_iterable(data_unsorted.values()))
+			data_unsorted = functools.reduce(operator.iconcat, list(data_unsorted.values()), [])
+			data_unsorted = np.array(data_unsorted,dtype=int)
+
+			# separate header from IQ data
+			raw_IQ_data_dump_header = data_unsorted.reshape(int(len(data_unsorted)/8),8)[0::2]
+			raw_I_data_dump_data = data_unsorted.reshape(int(len(data_unsorted)/8),8)[1::2][:,0:4]
+			raw_Q_data_dump_data = data_unsorted.reshape(int(len(data_unsorted)/8),8)[1::2][:,4:8]
+
+			# extract channel number from first byte of header
+			ch_num = (raw_IQ_data_dump_header%256).T[0]
+
+			# extract number of accumulated points for normalization from 3rd to 6th byte of header
+			num_points = np.frombuffer(np.stack((raw_IQ_data_dump_header.T[1], raw_IQ_data_dump_header.T[2]), axis=1).astype('int16').tobytes(), dtype=np.long)
+
+			# vectors indicating channel that the data originated from
+			ch_1 = ch_num*(ch_num == np.ones(len(ch_num)))
+			ch_2 = ch_num*(ch_num == 2*np.ones(len(ch_num)))/2
+			ch_3 = ch_num*(ch_num == 3*np.ones(len(ch_num)))/3
+			ch_4 = ch_num*(ch_num == 4*np.ones(len(ch_num)))/4
+			ch_5 = ch_num*(ch_num == 5*np.ones(len(ch_num)))/5
+			ch_6 = ch_num*(ch_num == 6*np.ones(len(ch_num)))/6
+			ch_7 = ch_num*(ch_num == 7*np.ones(len(ch_num)))/7
+			ch_8 = ch_num*(ch_num == 8*np.ones(len(ch_num)))/8
+
+			# data conversion form four 16 bit integers to one 64 bit longlong (*(0.3838e-3/16))
+			I_all_data = 2 + np.frombuffer(raw_I_data_dump_data.astype('int16').tobytes(), dtype=np.longlong)*0.3838e-3/(16*num_points)
+			Q_all_data = 2 + np.frombuffer(raw_Q_data_dump_data.astype('int16').tobytes(), dtype=np.longlong)*0.3838e-3/(16*num_points)
+
+
+			# --- may be adapted for more advanced data shaping 
+
+			I = [((I_all_data*ch_1)[I_all_data*ch_1!=0]-2).reshape(n_rep*ch_active[0],n_pulses).T,
+			     ((I_all_data*ch_2)[I_all_data*ch_2!=0]-2).reshape(n_rep*ch_active[1],n_pulses).T,
+			     ((I_all_data*ch_3)[I_all_data*ch_3!=0]-2).reshape(n_rep*ch_active[2],n_pulses).T,
+			     ((I_all_data*ch_4)[I_all_data*ch_4!=0]-2).reshape(n_rep*ch_active[3],n_pulses).T,
+			     ((I_all_data*ch_5)[I_all_data*ch_5!=0]-2).reshape(n_rep*ch_active[4],n_pulses).T,
+			     ((I_all_data*ch_6)[I_all_data*ch_6!=0]-2).reshape(n_rep*ch_active[5],n_pulses).T,
+			     ((I_all_data*ch_7)[I_all_data*ch_7!=0]-2).reshape(n_rep*ch_active[6],n_pulses).T,
+			     ((I_all_data*ch_8)[I_all_data*ch_8!=0]-2).reshape(n_rep*ch_active[7],n_pulses).T]
+			Q = [((Q_all_data*ch_1)[Q_all_data*ch_1!=0]-2).reshape(n_rep*ch_active[0],n_pulses).T,
+			     ((Q_all_data*ch_2)[Q_all_data*ch_2!=0]-2).reshape(n_rep*ch_active[1],n_pulses).T,
+			     ((Q_all_data*ch_3)[Q_all_data*ch_3!=0]-2).reshape(n_rep*ch_active[2],n_pulses).T,
+			     ((Q_all_data*ch_4)[Q_all_data*ch_4!=0]-2).reshape(n_rep*ch_active[3],n_pulses).T,
+			     ((Q_all_data*ch_5)[Q_all_data*ch_5!=0]-2).reshape(n_rep*ch_active[4],n_pulses).T,
+			     ((Q_all_data*ch_6)[Q_all_data*ch_6!=0]-2).reshape(n_rep*ch_active[5],n_pulses).T,
+			     ((Q_all_data*ch_7)[Q_all_data*ch_7!=0]-2).reshape(n_rep*ch_active[6],n_pulses).T,
+			     ((Q_all_data*ch_8)[Q_all_data*ch_8!=0]-2).reshape(n_rep*ch_active[7],n_pulses).T]
+
+
+
+			# I = [((I_all_data*ch_1)[I_all_data*ch_1!=0]-2),
+			# 	 ((I_all_data*ch_2)[I_all_data*ch_2!=0]-2),
+			# 	 ((I_all_data*ch_3)[I_all_data*ch_3!=0]-2),
+			# 	 ((I_all_data*ch_4)[I_all_data*ch_4!=0]-2),
+			# 	 ((I_all_data*ch_5)[I_all_data*ch_5!=0]-2),
+			# 	 ((I_all_data*ch_6)[I_all_data*ch_6!=0]-2),
+			# 	 ((I_all_data*ch_7)[I_all_data*ch_7!=0]-2),
+			# 	 ((I_all_data*ch_8)[I_all_data*ch_8!=0]-2)]
+			# Q = [((Q_all_data*ch_1)[Q_all_data*ch_1!=0]-2),
+			# 	 ((Q_all_data*ch_2)[Q_all_data*ch_2!=0]-2),
+			# 	 ((Q_all_data*ch_3)[Q_all_data*ch_3!=0]-2),
+			# 	 ((Q_all_data*ch_4)[Q_all_data*ch_4!=0]-2),
+			# 	 ((Q_all_data*ch_5)[Q_all_data*ch_5!=0]-2),
+			# 	 ((Q_all_data*ch_6)[Q_all_data*ch_6!=0]-2),
+			# 	 ((Q_all_data*ch_7)[Q_all_data*ch_7!=0]-2),
+			# 	 ((Q_all_data*ch_8)[Q_all_data*ch_8!=0]-2)]
+
+		elif mode == 'RAW':
+
+			self.reset_output_data()
+
+			#for now we consider only the one same type of acq on all adc
+			mode=self.acquisition_mode.get()
+
+			for index in range(8):
+
+				length_vec[index] = np.unique(length_vec[index])
+
+			getting_valid_dataset = True
+
+			while getting_valid_dataset:
+
+				adcdataI = [[],[],[],[],[],[],[],[]]
+				adcdataQ = [[],[],[],[],[],[],[],[]]
+
+				rep=[]
+
+				keep_trying = True
+				nb_try = 0
+
+				self.write("SEQ:STOP")
+				time.sleep(0.1)
+				self.write("SEQ:START")
+				time.sleep(0.1)
+				i = 0
+
+				while keep_trying:
+					try:
+						r = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
+							is_big_endian=False)
+					except:
+						r=[]
+
+
+					if self.debug_mode: 
+						if len(r)>1:
+							len_data_all +=len(r)
+						print(len_data_all)
+
+					if r == 'ERR':
+
+						log.error('rfSoC: Instrument returned ERR!')
+
+						# reset measurement
+						rep = []
+						empty_packet_count = 0
+						self.write("SEQ:STOP")
+						time.sleep(2)
+						while True:
+							try:
+								junk = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
+									is_big_endian=False)
+							except:
+								junk=[]
+
+							# print(junk)
+							time.sleep(0.1)
+							if junk == []:
+								break
+						junk = []
+						nb_try +=1
+						self.write("SEQ:START")
+						time.sleep(0.1)
+
+						continue
+
+					if len(r)>1:
+
+						rep = rep+r
+						nb_try = 0
+
+					elif r==[]:
+						try:
+							junk = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
+							is_big_endian=False)
+						except:
+								junk = []
+						if junk == []:
+							junk = []
+							keep_trying = False
+
+				self.write("SEQ:STOP")
+				nb_try = 0
+
+				i=0
+				TSMEM=0
+				while (i + 8 )<= len(rep) : # at least one header left
+
+					entete = np.array(rep[i:i+8])
+					X =entete.astype('int16').tobytes()
+					V = X[0]-1 # channel (1 to 8)
+					DSPTYPE = X[1]
+					#N does not have the same meaning depending on DSTYPE
+					N = struct.unpack('I',X[2:6])[0]
+					#number of acquisition points in continuous
+					#depends on the point length
+					NpCont = X[7]*256 + X[6]
+					TS= struct.unpack('Q',X[8:16])[0]
+
+					# print the header for each packet
+					# print("Channel={}; N={}; DSP_type={}; TimeStamp={}; Np_Cont={}; Delta_TimeStamp={}".format(V,N,DSPTYPE,TS,NpCont,TS-TSMEM))
+
+					TSMEM=TS
+
+					iStart=i+8
+					# if not in continuous acq mode
+					if ((DSPTYPE &  0x2)!=2):
+						# raw adcdata for each Np points block
+						if ((DSPTYPE  &  0x1)==0):
+							Np=N
+							adcdataI[V]=np.concatenate((adcdataI[V], np.right_shift(rep[iStart:iStart+Np],4)*0.3838e-3))
+
+						#in the accumulation mode, only 1 I and Q point even w mixer OFF
+						#mixer ON or OFF
+						if ((DSPTYPE  & 0x01)==0x1):
+							Np=8
+							D=np.array(rep[iStart:iStart+Np])
+							X = D.astype('int16').tobytes()
+
+							#I  dvided N and 2 bcse signed 63 bits aligned to the left
+							# mod div by 4 to fix amplitude -Arpit, Martina
+							I=  struct.unpack('q',X[0:8])[0]*(0.3838e-3)/(N*2*4)
+							Q=  struct.unpack('q',X[8:16])[0]*(0.3838e-3)/(N*2*4)
+
+							# print the point
+							# print("I/Q:",I,Q,"Amplitude:",np.sqrt(I*I+Q*Q),"Phase:",180*np.arctan2(I,Q)/np.pi)
+
+							adcdataI[V]=np.append(adcdataI[V], I)
+							adcdataQ[V]=np.append(adcdataQ[V], Q)
+
+
+					#in our case we dont need the continuous mode for now
+					# continuoous acquisition mode with accumulation (reduce the flow of data)
+					elif ((DSPTYPE &  0x3)==0x3):
+						# mixer OFF : onlyI @2Gs/s or 250Ms/s
+						if ((DSPTYPE  & 0x20)==0x0):
+							# points are already averaged in the PS part
+							# format : 16int
+							Np = NpCont
+							adcdataI[V]=np.concatenate((adcdataI[V], np.right_shift(rep[iStart:iStart+Np],4)*0.3838e-3))
+
+						# mixer ON : I and Q present
+						elif ((DSPTYPE  & 0x20)==0x20):
+							Np = NpCont
+							adcdataI[V]=np.concatenate((adcdataI[V],np.right_shift(rep[iStart:Np:2],4)*0.3838e-3))
+							adcdataQ[V]=np.concatenate((adcdataQ[V], np.right_shift(rep[iStart+1:Np:2],4)*0.3838e-3))
+
+
+					i = iStart+Np # index of the new data block, new header
+
+				# print("********************************************************************")
+				# print(len(rep),"Pts treated in ",time.perf_counter()-tstart,"seconds")
+				# print("********************************************************************")
+
+				#reshaping results
+
+				points_rec = 0
+				points_expected = 0
+
+				for index in range(8):
+
+					if len(adcdataI[index]) > 0:
+
+						points_rec += adcdataI[index].size
+
+					points_expected += int(n_rep * np.sum(length_vec[index],dtype=int))
+
+				if points_rec == points_expected:
+
+					getting_valid_dataset = False
+					if self.debug_mode:
+						print(adcdataI)
+
+					adcdataI=[np.array(adcdataI[v]).reshape(n_rep,np.sum(length_vec[v],dtype=int)) for v in range(8)]
+
+					I,Q = adcdataI,adcdataQ
+
+				else:
+
+					log.error('Data curruption: rfSoC did not send all data points({}/'.format(points_rec)+str(points_expected)+').')
+
+		else:
+
+			log.error('rfSoC: Instrument mode not recognized.')
+
+		return I,Q
 
  
-    def dump_raw_readout_pulse(self):
-        '''
-        Legacy function, may not work with the current driver.
-        This function dumps raw data to drive to avoid RAM clogging.
-        '''
-        self.reset_output_data()
-        mode = self.acquisition_mode()
-        n_rep = self.n_points_total
-        length_vec = self.length_vec
-        ch_vec = self.ch_vec
-        N_adc_events = len(ch_vec)
-        n_pulses = len(length_vec[0])
-        location = self.raw_dump_location
+	def dump_raw_readout_pulse(self):
+		'''
+		Legacy function, may not work with the current driver.
+		This function dumps raw data to drive to avoid RAM clogging.
+		'''
+		self.reset_output_data()
+		mode = self.acquisition_mode()
+		n_rep = self.n_points_total
+		length_vec = self.length_vec
+		ch_vec = self.ADC_events
+		N_adc_events = len(ch_vec)
+		n_pulses = len(length_vec[0])
+		location = self.raw_dump_location
 
-        ch_active = self.ADC_ch_active
+		ch_active = self.ADC_ch_active
 
-        if mode == 'INT':
-            '''
-                Get data
-            '''
+		if mode == 'INT':
+			'''
+				Get data
+			'''
 
-            count_meas = 0
-            empty_packet_count = 0
-            run_num = 0
+			count_meas = 0
+			empty_packet_count = 0
+			run_num = 0
 
-            self.write("SEQ:START")
-            time.sleep(0.1)
+			self.write("SEQ:START")
+			time.sleep(0.1)
 
-            getting_valid_dataset = True
+			getting_valid_dataset = True
 
-            if self.display_IQ_progress:
+			if self.display_IQ_progress:
 
-                self.display_IQ_progress_bar = IntProgress(min=0, max=n_rep) # instantiate the bar
-                display(self.display_IQ_progress_bar) # display the bar
+				self.display_IQ_progress_bar = IntProgress(min=0, max=n_rep) # instantiate the bar
+				display(self.display_IQ_progress_bar) # display the bar
 
-            while getting_valid_dataset:
+			while getting_valid_dataset:
 
-                while (count_meas//(16*N_adc_events))<n_rep:
+				while (count_meas//(16*N_adc_events))<n_rep:
 
-                    a = datetime.datetime.now()
+					a = datetime.datetime.now()
 
-                    try:
-                        r = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
-                            is_big_endian=False)
-                    except:
-                        r=[]
-                    # lenr = len(r)
-                    # if len(r)>1:
-                    #     len_data_all +=len(r)
-                    # print(r[0], len_data_all, N_adc_events*16)
+					try:
+						r = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
+							is_big_endian=False)
+					except:
+						r=[]
+					# lenr = len(r)
+					# if len(r)>1:
+					#     len_data_all +=len(r)
+					# print(r[0], len_data_all, N_adc_events*16)
 
-                    b = datetime.datetime.now()
-                    # print('\nget data: ',b-a)
+					b = datetime.datetime.now()
+					# print('\nget data: ',b-a)
 
-                    if r == 'ERR':
+					if r == 'ERR':
 
-                        log.error('rfSoC: Instrument returned ERR!')
+						log.error('rfSoC: Instrument returned ERR!')
 
-                        # reset measurement
-                        count_meas = 0
-                        empty_packet_count = 0
-                        run_num = 0
-                        self.write("SEQ:STOP")
-                        time.sleep(2)
-                        while True:
-                            try:
-                                junk = self.visa_handle.quejunky_binajunky_values('OUTPUT:DATA?', datatype="h",
-                                    is_big_endian=False)
-                            except:
-                                junk=[]
+						# reset measurement
+						count_meas = 0
+						empty_packet_count = 0
+						run_num = 0
+						self.write("SEQ:STOP")
+						time.sleep(2)
+						while True:
+							try:
+								junk = self.visa_handle.quejunky_binajunky_values('OUTPUT:DATA?', datatype="h",
+									is_big_endian=False)
+							except:
+								junk=[]
 
-                            # print(junk)
-                            time.sleep(0.1)
-                            if junk == [3338] or junk == [2573] or junk == []:
-                                break
-                        junk = []
-                        nb_try +=1
-                        self.write("SEQ:START")
-                        time.sleep(0.1)
+							# print(junk)
+							time.sleep(0.1)
+							if junk == [3338] or junk == [2573] or junk == []:
+								break
+						junk = []
+						nb_try +=1
+						self.write("SEQ:START")
+						time.sleep(0.1)
 
-                        continue
+						continue
 
-                    elif len(r)>1:
+					elif len(r)>1:
 
-                        a = datetime.datetime.now()
-                        empty_packet_count = 0
-                        r_size = len(r)
-                        pk.dump(r, open(location+"/raw_"+str(run_num)+".pkl","wb"))
-                        count_meas += r_size
-                        if self.display_IQ_progress:
-                            self.display_IQ_progress_bar.value = count_meas//(16*N_adc_events)
-                        run_num += 1
-                        b = datetime.datetime.now()
-                        # print('end storing: ',b-a)
+						a = datetime.datetime.now()
+						empty_packet_count = 0
+						r_size = len(r)
+						pk.dump(r, open(location+"/raw_"+str(run_num)+".pkl","wb"))
+						count_meas += r_size
+						if self.display_IQ_progress:
+							self.display_IQ_progress_bar.value = count_meas//(16*N_adc_events)
+						run_num += 1
+						b = datetime.datetime.now()
+						# print('end storing: ',b-a)
 
-                        time.sleep(0.01)
-
-
-                    elif r == [3338] or r == [2573] or r==[]: # new empty packet?
-
-                        time.sleep(0.1)
-                        self.write("SEQ:STOP")
-                        try:
-                            junk = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
-                            is_big_endian=False)
-                        except:
-                            junk = []
-                        time.sleep(0.1)
-                        if junk == [3338] or junk == [2573] or junk ==[]:
-                            break
-                        junk = []
-
-                        self.write("SEQ:START")
-                        time.sleep(0.1)
-                        continue
+						time.sleep(0.01)
 
 
+					elif r == [3338] or r == [2573] or r==[]: # new empty packet?
 
-                if count_meas//(16*N_adc_events) == n_rep:
+						time.sleep(0.1)
+						self.write("SEQ:STOP")
+						try:
+							junk = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
+							is_big_endian=False)
+						except:
+							junk = []
+						time.sleep(0.1)
+						if junk == [3338] or junk == [2573] or junk ==[]:
+							break
+						junk = []
 
-                    getting_valid_dataset = False
-
-                else:
-
-                    log.error('Data curruption: rfSoC did not send all data points({}/'.format(count_meas//(16*N_adc_events))+str(n_rep)+').')
-
-                    # reset measurement
-                    data_unsorted = []
-                    count_meas = 0
-                    empty_packet_count = 0
-                    self.write("SEQ:STOP")
-                    time.sleep(2)
-                    while True:
-                        try:
-                            junk = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
-                            is_big_endian=False)
-                        except:
-                            junk = []
-
-                        time.sleep(0.1)
-                        if junk == [3338] or junk == [2573] or junk == []:
-                            break
-                    junk = []
-                    self.write("SEQ:START")
-                    time.sleep(0.1)
-
-            self.write("SEQ:STOP")
-
-        return run_num
+						self.write("SEQ:START")
+						time.sleep(0.1)
+						continue
 
 
-    def transfer_speed(self, block_size=100):
 
-        """
-        Legacy function, may not work with the current driver
-        """
+				if count_meas//(16*N_adc_events) == n_rep:
 
-        block_n = int(block_size/10)
-        a = datetime.datetime.now()
-        for i in bar(range(block_n)):
-            try:
-                data = self.visa_handle.query_binary_values('OUTPUT:DATATEST?', datatype="h",
-                            is_big_endian=False)
-            except:
-                pass
+					getting_valid_dataset = False
 
-        b = datetime.datetime.now()
-        del_t = (b-a).seconds
-        speed = round(10*block_n/del_t,2)
-        event_rate = round(1000*speed/32,2)
-        pulse_length = round(1000/event_rate,2)
-        print('Transfer speed: '+str(speed)+' MBps')
-        print('Event rate: '+str(event_rate)+' K/s')
-        print('Minimum size of one ADC pulse: '+str(pulse_length)+' us per active channel')
+				else:
 
+					log.error('Data curruption: rfSoC did not send all data points({}/'.format(count_meas//(16*N_adc_events))+str(n_rep)+').')
 
-    def ask_raw(self, cmd: str) -> str:
-            """
-            Legacy function, may not work with the current driver
+					# reset measurement
+					data_unsorted = []
+					count_meas = 0
+					empty_packet_count = 0
+					self.write("SEQ:STOP")
+					time.sleep(2)
+					while True:
+						try:
+							junk = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
+							is_big_endian=False)
+						except:
+							junk = []
 
-            Overwriting the ask_ray qcodes native function to query binary
-            Low-level interface to ``visa_handle.ask``.
-            Args:
-                cmd: The command to send to the instrument.
-            Returns:
-                str: The instrument's response.
-            """
-            with DelayedKeyboardInterrupt():
-                keep_trying = True
-                count = 0
-                while keep_trying:
-                    count += 1
-                    self.visa_log.debug(f"Querying: {cmd}")
-                    try:
-                        response = self.visa_handle.query_binary_values(cmd, datatype="h", is_big_endian=False)
-                        self.visa_log.debug(f"Response: {response}")
-                        if len(response) > 1:
-                            i = 0
-                    except:
-                        try:        # try to read the data as a single point of data in case buffer is empty
-                            response = self.visa_handle.query_binary_values(cmd, datatype="h", is_big_endian=False, data_points=1, header_fmt='ieee', expect_termination=False)
-                        except:
-                            response = 'ERR'
-                    if response != 'ERR' and response != [3338]:
-                        keep_trying = False
-                    if count>10:
-                        keep_trying = False
+						time.sleep(0.1)
+						if junk == [3338] or junk == [2573] or junk == []:
+							break
+					junk = []
+					self.write("SEQ:START")
+					time.sleep(0.1)
 
-            return response
+			self.write("SEQ:STOP")
+
+		return run_num
 
 
-    def int_0(self):
-        return 0
+	def transfer_speed(self, block_size=100):
 
-    def int_8(self):
-        return 8
+		"""
+		Legacy function, may not work with the current driver
+		"""
 
-    def get_idn(self):
-        return {'vendor': 'Quantum Coherence Team', 'model': 'rfSoC gen01',
-                'serial': 'NA', 'firmware': None}
+		block_n = int(block_size/10)
+		a = datetime.datetime.now()
+		for i in bar(range(block_n)):
+			try:
+				data = self.visa_handle.query_binary_values('OUTPUT:DATATEST?', datatype="h",
+							is_big_endian=False)
+			except:
+				pass
+
+		b = datetime.datetime.now()
+		del_t = (b-a).seconds
+		speed = round(10*block_n/del_t,2)
+		event_rate = round(1000*speed/32,2)
+		pulse_length = round(1000/event_rate,2)
+		print('Transfer speed: '+str(speed)+' MBps')
+		print('Event rate: '+str(event_rate)+' K/s')
+		print('Minimum size of one ADC pulse: '+str(pulse_length)+' us per active channel')
 
 
-    def time_conversion(self, t):
+	# def ask_raw(self, cmd: str) -> str:
+	# 		"""
+	# 		Legacy function, may not work with the current driver
 
-        """
-        This function ensure that any time is compatible with the FPGA_clock speed. 
-        I.E. is a multiple of 4ns.
-        It should be used to define any time to ensure phase stability. 
+	# 		Overwriting the ask_ray qcodes native function to query binary
+	# 		Low-level interface to ``visa_handle.ask``.
+	# 		Args:
+	# 			cmd: The command to send to the instrument.
+	# 		Returns:
+	# 			str: The instrument's response.
+	# 		"""
+	# 		with DelayedKeyboardInterrupt():
+	# 			keep_trying = True
+	# 			count = 0
+	# 			while keep_trying:
+	# 				count += 1
+	# 				self.visa_log.debug(f"Querying: {cmd}")
+	# 				try:
+	# 					response = self.visa_handle.query_binary_values(cmd, datatype="h", is_big_endian=False)
+	# 					self.visa_log.debug(f"Response: {response}")
+	# 					if len(response) > 1:
+	# 						i = 0
+	# 				except:
+	# 					try:        # try to read the data as a single point of data in case buffer is empty
+	# 						response = self.visa_handle.query_binary_values(cmd, datatype="h", is_big_endian=False, data_points=1, header_fmt='ieee', expect_termination=False)
+	# 					except:
+	# 						response = 'ERR'
+	# 				if response != 'ERR' and response != [3338]:
+	# 					keep_trying = False
+	# 				if count>10:
+	# 					keep_trying = False
 
-        Parameter: 
-        - t -- (float) time to be converted 
-        - t_conv -- (float) time compatible with the RFSoC 
-        """
+	# 		return response
 
-        nb_clock_per_us = self.FPGA_clock*1e-6
-        t_conv = np.round(t*nb_clock_per_us)/nb_clock_per_us
-        return t_conv 
+
+	def int_0(self):
+		return 0
+
+	def int_8(self):
+		return 8
+
+	def get_idn(self):
+		return {'vendor': 'Quantum Coherence Team', 'model': 'rfSoC gen01',
+				'serial': 'NA', 'firmware': None}
+
+
+	def time_conversion(self, t):
+
+		"""
+		This function ensure that any time is compatible with the FPGA_clock speed. 
+		I.E. is a multiple of 4ns.
+		It should be used to define any time to ensure phase stability. 
+
+		Parameter: 
+		- t -- (float) time to be converted 
+		- t_conv -- (float) time compatible with the RFSoC 
+		"""
+
+		nb_clock_per_us = self.FPGA_clock*1e-6
+		t_conv = np.round(t*nb_clock_per_us)/nb_clock_per_us
+		return t_conv 
+
+
+
+
+
+
+
+
+
+
+
+
+
+	'''
+	
+	Functions to help with debugging
+
+	'''
+
+	def seq_DAC_ADC_int_to_bin(self,cmd_int):
+
+		cmd_bin = bin(cmd_int)[2:].zfill(32)
+
+		print('ADC command ',cmd_bin[0:8])
+		print()
+
+		for i in range(8):
+
+			print('DAC ' + str(i+1) + ' command ',cmd_bin[8+3*i:8+3+3*i])
+
+
+
+	def show_sequence_commands(self):
+
+		for i in range(int(len(self.global_sequence.astype(int))/2)):
+
+			print(self.global_sequence_info[i])
+			print(self.global_sequence.astype(int)[2*i],self.global_sequence.astype(int)[2*i+1])
+			print()
