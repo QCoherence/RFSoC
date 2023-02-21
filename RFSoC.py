@@ -337,7 +337,7 @@ class RFSoC(VisaInstrument):
         self.debug_mode = False
         self.debug_mode_plot_waveforms = False
         self.debug_mode_waveform_string = False
-        self.loop_time = False 
+        self.loop_time = False
 
         self.raw_dump_location = "C:/Data_tmp"
 
@@ -452,10 +452,10 @@ class RFSoC(VisaInstrument):
     def pulses_sequence(self):
 
         """
-        This function takes the pulses sequence stored in self.pulses and convert it in a Panda Dataframe 
-        that can be used by 'LUT_and_address_filling' and 
+        This function takes the pulses sequence stored in self.pulses and convert it in a Panda Dataframe
+        that can be used by 'LUT_and_address_filling' and
         process_sequencing_IQ_table() (or process_sequencing() in the legacy mode)
-        If self.display_sequence is True it also provide à graphical representation of the pulse sequence. 
+        If self.display_sequence is True it also provide à graphical representation of the pulse sequence.
         Note that the displayed sequence just represent the first instance of the loop set by self.n_points.
         Also only the first iteration of the loop set by a n_rep>1 is shown (in dark color).
         """
@@ -463,18 +463,23 @@ class RFSoC(VisaInstrument):
 
 
         log.info('Started sequence processing'+'  \n')
-
         pulses_raw_df = self.pulses
 
-        # --- Check pulse labeling 
+        # --- Check pulse labeling
 
-        if len(set(pulses_raw_df['label'])) < len(pulses_raw_df['label']):
+        # if len(set(pulses_raw_df['label'])) < len(pulses_raw_df['label']):
+        #
+        #     log.error('Duplicate Labels: Labels need to be unique for consistent identification of pulse hierarchy.')
 
-            log.error('Duplicate Labels: Labels need to be unique for consistent identification of pulse hierarchy.')
-
-        pulses_raw_df.set_index('label', inplace = True)
-
+        try:
+            pulses_raw_df.set_index('label', inplace = True)
+        except :
+            pass
         # --- Legacy, used to define a pulse with respect to another one in the time frame. May not work with this version (unchecked)
+        label_pulses =[]
+        for lab in pulses_raw_df.iterrows() : label_pulses.append(lab[0])
+        if len(set(label_pulses)) < len(label_pulses):
+            log.error('Duplicate Labels: Labels need to be unique for consistent identification of pulse hierarchy.')
 
         resolve_hierarchy = True
         while resolve_hierarchy:
@@ -498,7 +503,7 @@ class RFSoC(VisaInstrument):
             print('Hierarchy resolution...')
             display(pulses_raw_df)
 
-        # --- Initialisation 
+        # --- Initialisation
 
         pulses_df = pd.DataFrame()
         time_ADC = [0,0,0,0,0,0,0,0]
@@ -514,7 +519,7 @@ class RFSoC(VisaInstrument):
         DAC_color_rep = int("234e90", 16)
         ADC_color_rep = int("913608", 16)
 
-        wait_count = 0 # counter used to label the wait 
+        wait_count = 0 # counter used to label the wait
         termination_time = 0 # keep track of the latest event
         ch_demod = None # either or not the ADC LUT will be used during the sequence
 
@@ -532,13 +537,13 @@ class RFSoC(VisaInstrument):
             length = row['length']
 
 
-            # if n_rep>1 we need to know the dead_time, the waiting time between two consecutive pulses 
-            if rep_nb>1: 
+            # if n_rep>1 we need to know the dead_time, the waiting time between two consecutive pulses
+            if rep_nb>1:
                 dead_time = row['dead_time']
             else:
                 dead_time = 0
 
-            # creat the start and stop of the pulses 
+            # creat the start and stop of the pulses
             start_vec = start + np.arange(rep_nb) * (length + dead_time)
             stop_vec = start + np.arange(1, rep_nb + 1) * length + np.arange(rep_nb) * dead_time
 
@@ -576,7 +581,7 @@ class RFSoC(VisaInstrument):
                         # if k > 2 it only updates the last event time
                         stop = start_vec[k]
                         break
-                    
+
 
                     wait_count +=1
 
@@ -597,7 +602,7 @@ class RFSoC(VisaInstrument):
                     else:
                         color = '#{0:06X}'.format(ADC_color)
 
-                    # fill the parameters only used for the 'IQ_table' mode 
+                    # fill the parameters only used for the 'IQ_table' mode
                     LUT = not(np.isnan(row['LUT']))
                     ch_demod = row['demodulation_channels']
                     param = row['param']
@@ -723,7 +728,7 @@ class RFSoC(VisaInstrument):
 
 
 
-        # --- Pulse sequences treatment solving inconsistancy regarding stop time when n_rep>1 and more than one pulses is used. 
+        # --- Pulse sequences treatment solving inconsistancy regarding stop time when n_rep>1 and more than one pulses is used.
 
         pulses_fin = pd.DataFrame()
         channel_list = set(list(pulses_df['Channel']))
@@ -736,17 +741,17 @@ class RFSoC(VisaInstrument):
                 pulses_ch.iloc[i, pulses_ch.columns.get_loc('time')] = pulses_ch.iloc[i]['stop'] - pulses_ch.iloc[i]['start']
             pulses_fin = pd.concat([pulses_fin, pulses_ch], ignore_index=True)
 
-        # --- Sequence plotting 
+        # --- Sequence plotting
 
         if self.display_sequence:
 
-            fig = make_subplots(rows=len(channel_list), cols=1, shared_xaxes=True)            
+            fig = make_subplots(rows=len(channel_list), cols=1, shared_xaxes=True)
 
             for idx, ch in enumerate(channel_list):
                 pulses_loop =  pulses_fin.loc[pulses_fin['Channel']==ch]
                 pulses_loop = pulses_loop.sort_values('start')
 
-                fig.add_trace(go.Bar(x=pulses_loop.time, y=pulses_loop.Channel, orientation='h', text=pulses_loop.label, marker=dict(color=pulses_loop.color), 
+                fig.add_trace(go.Bar(x=pulses_loop.time, y=pulses_loop.Channel, orientation='h', text=pulses_loop.label, marker=dict(color=pulses_loop.color),
                                         customdata=np.dstack((pulses_loop.label, pulses_loop.start, pulses_loop.stop))[0],
                                         hovertemplate='label: %{customdata[0]: s} <br>start: %{customdata[1]:.3f} <br>stop: %{customdata[2]:.3f}'), idx + 1, 1)
 
@@ -766,20 +771,20 @@ class RFSoC(VisaInstrument):
     def LUT_and_adress_filling(self, pulses_df, ADC=True, DAC=True):
 
         """
-        This function take the pulses sequence provided and store the pulses in the LUT of the DAC/ADC. 
-        It also define the pointers that can be used. 
+        This function take the pulses sequence provided and store the pulses in the LUT of the DAC/ADC.
+        It also define the pointers that can be used.
 
-        For now three pointers can be defined in the ADC: start/loop/stop. 
+        For now three pointers can be defined in the ADC: start/loop/stop.
         However, the start pointer cannot be shifted for now (it is set at the begining of the pulses).
         Moreover, the loop pointer is set equal to the start pointer.
 
 
         Parameters:
-        pulses_df -- panda DataFrame containing the pulse sequence. 
+        pulses_df -- panda DataFrame containing the pulse sequence.
         ADC -- LUT and pointer adress for the ADC (default True).
         DAC -- LUT and pointer adress for the DAC (default True).
 
-        Return: 
+        Return:
         DAC_pulses_pointer, ADC_pulses_pointer -- two lists containing the DAC and ADC pointers.
 
         """
@@ -817,8 +822,8 @@ class RFSoC(VisaInstrument):
 
                         else:
                             pulse_addr =  last_pointer + round((row['start_pointer']*1e-6*self.sampling_rate)/8)
-                            
-                            
+
+
                         DAC_pulses_pointer[ch_num-1].append(pulse_addr)
 
                         if self.debug_mode:
@@ -851,7 +856,7 @@ class RFSoC(VisaInstrument):
                         plt.legend(fontsize = 14)
                         plt.show()
 
-                    DAC_SCPI_cmd = 'DAC:DATA:CH' + str(i+1) + ' 0,' + ','.join((DAC_pulses_array[i].astype(int)).astype(str)) 
+                    DAC_SCPI_cmd = 'DAC:DATA:CH' + str(i+1) + ' 0,' + ','.join((DAC_pulses_array[i].astype(int)).astype(str))
 
                     # if self.debug_mode and self.debug_mode_waveform_string:
                     if self.debug_mode_waveform_string:
@@ -885,7 +890,7 @@ class RFSoC(VisaInstrument):
                     if i==4:
                         self.ADC4.status('ON')
                         self.ADC4.fmixer(0)
-                    if i==5: 
+                    if i==5:
                         self.ADC5.status('ON')
                         self.ADC7.fmixer(0)
                     if i==6:
@@ -1056,8 +1061,8 @@ class RFSoC(VisaInstrument):
     def process_sequencing_IQ_table(self):
 
         """
-        This function take the stored pulses sequence and creat the SCPI command 
-        that is sent to the RFSoC sequencer. 
+        This function take the stored pulses sequence and creat the SCPI command
+        that is sent to the RFSoC sequencer.
         It also fill the ADC/DAC LUT via LUT_and_adress_filling()
         """
 
@@ -1066,7 +1071,7 @@ class RFSoC(VisaInstrument):
         pulses_df = self.pulses_sequence()
         event_time_list = list(dict.fromkeys(pulses_df['start']))
         event_time_list.sort()
-        # temrination time used to close the sequence 
+        # temrination time used to close the sequence
         termination_time = np.max((np.array(list(pulses_df['stop']))))
 
         # --- Initialisation of the parameters
@@ -1087,7 +1092,7 @@ class RFSoC(VisaInstrument):
         DAC_state_prev = [0,0,0,0,0,0,0,0]
         self.ADC_ch_active = np.array([0,0,0,0,0,0,0,0])
 
-        # lists storing the ADC/DAC pointer index 
+        # lists storing the ADC/DAC pointer index
         pointer_dac = [0,0,0,0,0,0,0,0]
         pointer_adc = [0,0,0,0]
         # boolean checking if the repetition started
@@ -1107,22 +1112,22 @@ class RFSoC(VisaInstrument):
         pulses_rep_dac = pulses_rep_all.loc[(pulses_rep_all['module']=='DAC')]
         pulses_rep_adc = pulses_rep_all.loc[(pulses_rep_all['module']=='ADC')]
 
-        # count the pulses number per dac 
+        # count the pulses number per dac
 
         if len(pulses_rep_dac)>0:
             for index, row in pulses_rep_dac.iterrows():
                 ch_num = int(row['ch_num'])
-                nb_pulses_dac[ch_num - 1] +=1 
+                nb_pulses_dac[ch_num - 1] +=1
 
-        # same for the adc 
+        # same for the adc
 
         if len(pulses_rep_adc)>0:
             for index, row in pulses_rep_adc.iterrows():
                 ch_demod = row['ch_demod']
-                for chd in ch_demod: 
+                for chd in ch_demod:
                     nb_pulses_adc[chd - 1] +=1
-        
-        # --- Start of the sequence filling 
+
+        # --- Start of the sequence filling
 
         if self.debug_mode:
             print('*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*')
@@ -1137,7 +1142,7 @@ class RFSoC(VisaInstrument):
         for event_time in event_time_list:
             if event_time>0:
 
-                # add a waiting time any time it is needed 
+                # add a waiting time any time it is needed
                 global_sequence = np.append(global_sequence,1)
                 wait_time = int(round((event_time-event_time_prev)*250) - 1)
                 global_sequence = np.append(global_sequence, wait_time)
@@ -1176,9 +1181,9 @@ class RFSoC(VisaInstrument):
 
 
                     if not(np.isnan(row['start_pointer'])):
-                        # if there is a start pointer it must be a pulse 
+                        # if there is a start pointer it must be a pulse
 
-                        # set the starting pointer to the correct address 
+                        # set the starting pointer to the correct address
                         global_sequence = np.append(global_sequence,4096+ch_num)
                         global_sequence = np.append(global_sequence,DAC_pulses_pointer[ch_num-1][pointer_dac[ch_num - 1]])
 
@@ -1198,10 +1203,10 @@ class RFSoC(VisaInstrument):
                             pointer_dac[ch_num - 1] +=1
                             if self.debug_mode:
                                 print('Pointer shifted to %i'%pointer_dac[ch_num - 1])
-                        else: 
+                        else:
                             while pulses_counter_dac[ch_num - 1]<nb_pulses_dac[ch_num - 1]:
                                 pointer_dac[ch_num - 1] +=1
-                                pulses_counter_dac[ch_num - 1] +=1 
+                                pulses_counter_dac[ch_num - 1] +=1
 
                                 if self.debug_mode:
                                     print('Pointer shifted to %i'%pointer_dac[ch_num - 1])
@@ -1248,10 +1253,10 @@ class RFSoC(VisaInstrument):
                         for k in ch_demod:
                             # check that the given ADC is not ON, if not no change in the routing
                             if ch_num == 1 and ADC_state[7-(ch_num-1)] == 0:
-                                # check that the given ADC LUT is not already used  
+                                # check that the given ADC LUT is not already used
                                 if k ==1 and np.sum(mux_state[:, 0])==0:
                                     mux_step[0] = '000' # binary corresponding to the routing
-                                    mux_state[ch_num-1, 0] = 1 # indicate that the ADC LUT is used 
+                                    mux_state[ch_num-1, 0] = 1 # indicate that the ADC LUT is used
                                 elif k ==2 and np.sum(mux_state[:, 1])==0:
                                     mux_step[1] = '001'
                                     mux_state[ch_num-1, 1] = 1
@@ -1312,15 +1317,15 @@ class RFSoC(VisaInstrument):
                         for idx, chd in enumerate(ch_demod):
 
 
-                            #  --- creation of the bit string storing the mixer state and the start pointer 
+                            #  --- creation of the bit string storing the mixer state and the start pointer
                             bin_cmd = mux_step[chd - 1] # mixer routing
                             bin_cmd += '1' # set the mixer to ON
                             bin_cmd += '00000000000000'# used bit
 
-                            # convert the pointer postition in binary 
+                            # convert the pointer postition in binary
                             bin_start = bin(ADC_pulses_pointer[chd - 1][0][pointer_adc[chd - 1]])[2:]
 
-                            # fill the unused bits 
+                            # fill the unused bits
                             len_bit_start = len(bin_start)
                             bin_start_add = [0] * (14 - len_bit_start)
                             bin_start_add = str(bin_start_add)[1:-1].replace(', ', '')
@@ -1344,7 +1349,7 @@ class RFSoC(VisaInstrument):
 
                             # --- creation of the bit string storing the loop and stop pointer
 
-                            # convert the pointer postitions in binary 
+                            # convert the pointer postitions in binary
                             bin_loop = bin(ADC_pulses_pointer[chd - 1][1][pointer_adc[chd - 1]])[2:]
                             bin_stop = bin(ADC_pulses_pointer[chd - 1][2][pointer_adc[chd - 1]])[2:]
 
@@ -1360,7 +1365,7 @@ class RFSoC(VisaInstrument):
                             bin_stop_add = str(bin_stop_add)[1:-1].replace(', ', '')
                             bin_stop = bin_stop_add + bin_stop
 
-                            # add the two bit strings 
+                            # add the two bit strings
                             bin_cmd = '00' + bin_loop + '00' + bin_stop
 
                             # add loop and stop pointer for the given demod channel
@@ -1373,7 +1378,7 @@ class RFSoC(VisaInstrument):
                                 print(4129+2*(chd - 1), int(bin_cmd,2))
 
 
-                            # add the number of points the ADC LUT should take 
+                            # add the number of points the ADC LUT should take
                             global_sequence = np.append(global_sequence,4107 + (chd - 1))
                             global_sequence = np.append(global_sequence,int(row['time']*1e-6*self.sampling_rate))
 
@@ -1383,7 +1388,7 @@ class RFSoC(VisaInstrument):
                                 print(4106+(chd - 1),int(row['time']*1e-6*self.sampling_rate))
 
 
-                            # change the ADC LUT to ON 
+                            # change the ADC LUT to ON
                             ADC_state[7-(chd-1)] = 1
                             self.ADC_ch_active[chd-1] = 1
 
@@ -1394,10 +1399,10 @@ class RFSoC(VisaInstrument):
                             # the pointer index of the given channel is updated or not depending on the situation
                             if not(rep_started):
                                 pointer_adc[chd - 1] +=1
-                            else: 
+                            else:
                                 while pulses_counter_adc[chd - 1] < nb_pulses_adc[chd- 1]:
                                     pointer_adc[chd - 1] +=1
-                                    pulses_counter_adc[chd - 1] +=1 
+                                    pulses_counter_adc[chd - 1] +=1
 
                         self.n_points_total += row['rep_nb']
 
@@ -1413,7 +1418,7 @@ class RFSoC(VisaInstrument):
                                 print('ADC state is :', ADC_state)
 
 
-            # ---  Update of the ADC and DAC state at every time step 
+            # ---  Update of the ADC and DAC state at every time step
 
             if DAC_state != DAC_state_prev or ADC_state != ADC_state_prev:
 
@@ -1422,7 +1427,7 @@ class RFSoC(VisaInstrument):
                     print('DAC state updated from %s to %s'%(DAC_state_prev, DAC_state))
 
 
-                # update the ADC state 
+                # update the ADC state
                 bin_adc_cmd = str(ADC_state)[1:-1].replace(', ', '')
                 bin_dac_cmd = ''
 
@@ -1438,7 +1443,7 @@ class RFSoC(VisaInstrument):
                     else:
                         bin_dac_cmd +='000'
 
-                # add the two bit strings and add the command to update states 
+                # add the two bit strings and add the command to update states
                 bin_trig_cmd = bin_adc_cmd + bin_dac_cmd
                 global_sequence = np.append(global_sequence,4096)
                 global_sequence = np.append(global_sequence,int(bin_trig_cmd,2))
@@ -1461,7 +1466,7 @@ class RFSoC(VisaInstrument):
 
 
 
-        # --- Add a last waiting time if needing 
+        # --- Add a last waiting time if needing
 
         wait_term = int(round((termination_time - event_time)*250))-1
         global_sequence = np.append(global_sequence,1)
@@ -1471,7 +1476,7 @@ class RFSoC(VisaInstrument):
             print('Terminate by wait of : %f' %(wait_term + 1))
 
 
-        # Switch off all the DAC/ADC 
+        # Switch off all the DAC/ADC
         global_sequence = np.append(global_sequence,4096)
         global_sequence = np.append(global_sequence,0)
 
@@ -1481,7 +1486,7 @@ class RFSoC(VisaInstrument):
             global_sequence = np.append(global_sequence, 0)
 
 
-        # --- Set the Acquisition mode 
+        # --- Set the Acquisition mode
         if self.acquisition_mode() == 'RAW':
             acq_mode = 0
         elif self.acquisition_mode() == 'INT':
@@ -1490,7 +1495,7 @@ class RFSoC(VisaInstrument):
             log.error('Invalid acquisition mode\n')
 
 
-        # if n_points()>1 we add a global loop 
+        # if n_points()>1 we add a global loop
         if self.n_points() > 1:
             period_sync = int(self.FPGA_clock/self.freq_sync())
             global_sequence_str = 'SEQ 0,1,9,4106,' + str(acq_mode) + ',258,' + str(int(self.n_points()-1)) + ',' + ','.join((global_sequence.astype(int)).astype(str))  + ',514,0,0,0'
@@ -1501,11 +1506,11 @@ class RFSoC(VisaInstrument):
         if self.debug_mode:
             print('Sequence programmer command: ',global_sequence_str)
 
-        # --- Send the SCPI command 
+        # --- Send the SCPI command
         log.info('Writing global sequence' + '\n')
         self.write(global_sequence_str)
 
-        # Update the total acquisition points 
+        # Update the total acquisition points
         self.n_points_total *=self.n_points()
 
         # reset the pointer indexes
@@ -1517,23 +1522,23 @@ class RFSoC(VisaInstrument):
 
         """
         This function convert the pulses parameters into a 1D array of Volt amplitude in bit scale.
-        This is used in LUT_and_adress_filling() to creat the SCPI command. 
+        This is used in LUT_and_adress_filling() to creat the SCPI command.
 
-        Parameters: 
+        Parameters:
         function -- (str) function to generate, can be 'sin+sin' for a sum of sin
-        'sin' for a sin, 'trigger' for a trigger and 'DC' for a DC channel 
+        'sin' for a sin, 'trigger' for a trigger and 'DC' for a DC channel
         param --  list containing the function parameters
-        duration -- (float) pulse duration 
+        duration -- (float) pulse duration
         ch --  (int) LUT channel
         mode -- (str) 'DAC' or 'ADC'
 
-        return: 
-        wavepoints -- 1D array of points that will be stored in the LUT 
+        return:
+        wavepoints -- 1D array of points that will be stored in the LUT
         """
 
         period = 1./self.sampling_rate
         time_vec = np.arange(period,duration*1e-6+period/2,period)
-        # stop vector used to separate different pulses in a channel 
+        # stop vector used to separate different pulses in a channel
         stop_vector = np.array([0,0,0,0,0,0,0,0,0,0,16383])
 
         if function == 'sin+sin':
@@ -1547,9 +1552,9 @@ class RFSoC(VisaInstrument):
             idx_of = np.nonzero(((wavepoints > 8191) | (wavepoints < -8192)))[0]
             if len(np.nonzero(wavepoints[idx_of] != 16381)[0])>0:
                 if mode =='DAC':
-                    log.error('Error when filling the DAC memory: maximal amplitude is over the resolution') 
+                    log.error('Error when filling the DAC memory: maximal amplitude is over the resolution')
                 elif mode == 'ADC':
-                    log.error('Error when filling the ADC memory: maximal amplitude is over the resolution') 
+                    log.error('Error when filling the ADC memory: maximal amplitude is over the resolution')
 
 
             if self.debug_mode and self.debug_mode_plot_waveforms:
@@ -1572,7 +1577,7 @@ class RFSoC(VisaInstrument):
 
             if mode == 'DAC':
 
-                # --- When using 'DAC' every 8 points you insert trigger bits that define the trigger states 
+                # --- When using 'DAC' every 8 points you insert trigger bits that define the trigger states
 
                 # adding zeros to make length multiple of 8
                 wavepoints = np.append(wavepoints,np.zeros(len(time_vec)%8))
@@ -1589,7 +1594,7 @@ class RFSoC(VisaInstrument):
                 wavepoints =  wavepoints[0]
                 wavepoints = np.append(wavepoints,stop_vector)
 
-                
+
 
 
 
@@ -1600,9 +1605,9 @@ class RFSoC(VisaInstrument):
             idx_of = np.nonzero(((wavepoints > 8191) | (wavepoints < -8192)))[0]
             if len(np.nonzero(wavepoints[idx_of] != 16381)[0])>0:
                 if mode =='DAC':
-                    log.error('Error when filling the DAC memory: maximal amplitude is over the resolution') 
+                    log.error('Error when filling the DAC memory: maximal amplitude is over the resolution')
                 elif mode == 'ADC':
-                    log.error('Error when filling the ADC memory: maximal amplitude is over the resolution') 
+                    log.error('Error when filling the ADC memory: maximal amplitude is over the resolution')
 
             if self.debug_mode and self.debug_mode_plot_waveforms:
                 print('plot of sin mode')
@@ -1700,7 +1705,7 @@ class RFSoC(VisaInstrument):
             log.error('Wrong waveform mode: ',function)
 
 
-        if len(wavepoints) > 128000: 
+        if len(wavepoints) > 128000:
             if mode == 'DAC':
                 log.error('Error when filling the DAC memory : to many points, maximal number is 128000 while you are asking for %i'%len(wavepoints))
             if mode == 'ADC':
@@ -1711,7 +1716,7 @@ class RFSoC(VisaInstrument):
 
     def start_play(self):
         """
-        This function can be used while debugging the driver. 
+        This function can be used while debugging the driver.
         It asks three times for the data and print the output
         list and it length
         """
@@ -1721,11 +1726,8 @@ class RFSoC(VisaInstrument):
         self.write("SEQ:START")
         time.sleep(0.1)
         for k in range(3):
-            try:
-                 r = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
-                            is_big_endian=False)
-            except:
-                 r=[]
+            r = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
+                        is_big_endian=False)
             if self.debug_mode:
                 print(len(r), r)
 
@@ -1760,12 +1762,14 @@ class RFSoC(VisaInstrument):
         self.reset_output_data()
         mode = self.acquisition_mode()
         n_rep = int(self.n_points_total)
+        # n_rep = 1
         length_vec = self.length_vec
         ch_vec = self.ch_vec
         # N_adc_events = len(ch_vec) # to be discussed with Arpit
         N_adc_events = len(np.unique(ch_vec))
-        if self.debug_mode:
-            len_data_all = 0
+        n_rep = n_rep/N_adc_events
+        # if self.debug_mode:
+        #     len_data_all = 0
         # print(N_adc_events, ch_vec)
         #print(length_vec)
         # n_pulses = len(length_vec[0]) # to be discussed with Arpit
@@ -1797,11 +1801,8 @@ class RFSoC(VisaInstrument):
 
                 while (count_meas//(16*N_adc_events))<n_rep:
 
-
-
-                    if self.loop_time: 
+                    if self.loop_time:
                         a = datetime.datetime.now()
-
 
                     try:
                         r = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
@@ -1809,14 +1810,13 @@ class RFSoC(VisaInstrument):
                     except:
                         r=[]
 
-                    if self.debug_mode: 
-                        if len(r)>1:
-                            len_data_all +=len(r)
+                    # if self.debug_mode:
+                    #     if len(r)>1:
+                            # len_data_all +=len(r)
+                        # print(r)
                         # print(len_data_all)
 
-
-
-                    if self.loop_time: 
+                    if self.loop_time:
                         b = datetime.datetime.now()
                         print('\nget data: ',b-a)
 
@@ -1846,10 +1846,10 @@ class RFSoC(VisaInstrument):
                         continue
 
                     elif len(r)>1:
-
                         data_unsorted['{}'.format(run_num)] = r
                         r_size = len(r)
                         count_meas += r_size
+
                         if self.display_IQ_progress:
                             self.display_IQ_progress_bar.value = count_meas//(16*N_adc_events)
                         run_num += 1
@@ -1884,7 +1884,7 @@ class RFSoC(VisaInstrument):
                     log.error('Data curruption: rfSoC did not send all data points({}/'.format(count_meas//(16*N_adc_events))+str(n_rep)+').')
 
                     # reset measurement
-                    data_unsorted = []
+                    data_unsorted = {}
                     count_meas = 0
                     empty_packet_count = 0
                     self.write("SEQ:STOP")
@@ -1912,7 +1912,6 @@ class RFSoC(VisaInstrument):
             # data_unsorted = list(chain.from_iterable(data_unsorted.values()))
             data_unsorted = functools.reduce(operator.iconcat, list(data_unsorted.values()), [])
             data_unsorted = np.array(data_unsorted,dtype=int)
-
             # separate header from IQ data
             raw_IQ_data_dump_header = data_unsorted.reshape(int(len(data_unsorted)/8),8)[0::2]
             raw_I_data_dump_data = data_unsorted.reshape(int(len(data_unsorted)/8),8)[1::2][:,0:4]
@@ -1939,7 +1938,7 @@ class RFSoC(VisaInstrument):
             Q_all_data = 2 + np.frombuffer(raw_Q_data_dump_data.astype('int16').tobytes(), dtype=np.longlong)*0.3838e-3/(16*num_points)
 
 
-            # --- may be adapted for more advanced data shaping 
+            # --- may be adapted for more advanced data shaping
 
             # I = [((I_all_data*ch_1)[I_all_data*ch_1!=0]-2).reshape(n_rep*ch_active[0],n_pulses).T,
             #      ((I_all_data*ch_2)[I_all_data*ch_2!=0]-2).reshape(n_rep*ch_active[1],n_pulses).T,
@@ -2015,7 +2014,7 @@ class RFSoC(VisaInstrument):
                         r=[]
 
 
-                    if self.debug_mode: 
+                    if self.debug_mode:
                         if len(r)>1:
                             len_data_all +=len(r)
                         print(len_data_all)
@@ -2168,216 +2167,216 @@ class RFSoC(VisaInstrument):
 
         return I,Q
 
- 
-    def dump_raw_readout_pulse(self):
-        '''
-        Legacy function, may not work with the current driver.
-        This function dumps raw data to drive to avoid RAM clogging.
-        '''
-        self.reset_output_data()
-        mode = self.acquisition_mode()
-        n_rep = self.n_points_total
-        length_vec = self.length_vec
-        ch_vec = self.ch_vec
-        N_adc_events = len(ch_vec)
-        n_pulses = len(length_vec[0])
-        location = self.raw_dump_location
+    #
+    # def dump_raw_readout_pulse(self):
+    #     '''
+    #     Legacy function, may not work with the current driver.
+    #     This function dumps raw data to drive to avoid RAM clogging.
+    #     '''
+    #     self.reset_output_data()
+    #     mode = self.acquisition_mode()
+    #     n_rep = self.n_points_total
+    #     length_vec = self.length_vec
+    #     ch_vec = self.ch_vec
+    #     N_adc_events = len(ch_vec)
+    #     n_pulses = len(length_vec[0])
+    #     location = self.raw_dump_location
+    #
+    #     ch_active = self.ADC_ch_active
+    #
+    #     if mode == 'INT':
+    #         '''
+    #             Get data
+    #         '''
+    #
+    #         count_meas = 0
+    #         empty_packet_count = 0
+    #         run_num = 0
+    #
+    #         self.write("SEQ:START")
+    #         time.sleep(0.1)
+    #
+    #         getting_valid_dataset = True
+    #
+    #         if self.display_IQ_progress:
+    #
+    #             self.display_IQ_progress_bar = IntProgress(min=0, max=n_rep) # instantiate the bar
+    #             display(self.display_IQ_progress_bar) # display the bar
+    #
+    #         while getting_valid_dataset:
+    #
+    #             while (count_meas//(16*N_adc_events))<n_rep:
+    #
+    #                 a = datetime.datetime.now()
+    #
+    #                 try:
+    #                     r = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
+    #                         is_big_endian=False)
+    #                 except:
+    #                     r=[]
+    #                 # lenr = len(r)
+    #                 # if len(r)>1:
+    #                 #     len_data_all +=len(r)
+    #                 # print(r[0], len_data_all, N_adc_events*16)
+    #
+    #                 b = datetime.datetime.now()
+    #                 # print('\nget data: ',b-a)
+    #
+    #                 if r == 'ERR':
+    #
+    #                     log.error('rfSoC: Instrument returned ERR!')
+    #
+    #                     # reset measurement
+    #                     count_meas = 0
+    #                     empty_packet_count = 0
+    #                     run_num = 0
+    #                     self.write("SEQ:STOP")
+    #                     time.sleep(2)
+    #                     while True:
+    #                         try:
+    #                             junk = self.visa_handle.quejunky_binajunky_values('OUTPUT:DATA?', datatype="h",
+    #                                 is_big_endian=False)
+    #                         except:
+    #                             junk=[]
+    #
+    #                         # print(junk)
+    #                         time.sleep(0.1)
+    #                         if junk == [3338] or junk == [2573] or junk == []:
+    #                             break
+    #                     junk = []
+    #                     nb_try +=1
+    #                     self.write("SEQ:START")
+    #                     time.sleep(0.1)
+    #
+    #                     continue
+    #
+    #                 elif len(r)>1:
+    #
+    #                     a = datetime.datetime.now()
+    #                     empty_packet_count = 0
+    #                     r_size = len(r)
+    #                     pk.dump(r, open(location+"/raw_"+str(run_num)+".pkl","wb"))
+    #                     count_meas += r_size
+    #                     if self.display_IQ_progress:
+    #                         self.display_IQ_progress_bar.value = count_meas//(16*N_adc_events)
+    #                     run_num += 1
+    #                     b = datetime.datetime.now()
+    #                     # print('end storing: ',b-a)
+    #
+    #                     time.sleep(0.01)
+    #
+    #
+    #                 elif r == [3338] or r == [2573] or r==[]: # new empty packet?
+    #
+    #                     time.sleep(0.1)
+    #                     self.write("SEQ:STOP")
+    #                     try:
+    #                         junk = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
+    #                         is_big_endian=False)
+    #                     except:
+    #                         junk = []
+    #                     time.sleep(0.1)
+    #                     if junk == [3338] or junk == [2573] or junk ==[]:
+    #                         break
+    #                     junk = []
+    #
+    #                     self.write("SEQ:START")
+    #                     time.sleep(0.1)
+    #                     continue
+    #
+    #
+    #
+    #             if count_meas//(16*N_adc_events) == n_rep:
+    #
+    #                 getting_valid_dataset = False
+    #
+    #             else:
+    #
+    #                 log.error('Data curruption: rfSoC did not send all data points({}/'.format(count_meas//(16*N_adc_events))+str(n_rep)+').')
+    #
+    #                 # reset measurement
+    #                 data_unsorted = []
+    #                 count_meas = 0
+    #                 empty_packet_count = 0
+    #                 self.write("SEQ:STOP")
+    #                 time.sleep(2)
+    #                 while True:
+    #                     try:
+    #                         junk = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
+    #                         is_big_endian=False)
+    #                     except:
+    #                         junk = []
+    #
+    #                     time.sleep(0.1)
+    #                     if junk == [3338] or junk == [2573] or junk == []:
+    #                         break
+    #                 junk = []
+    #                 self.write("SEQ:START")
+    #                 time.sleep(0.1)
+    #
+    #         self.write("SEQ:STOP")
+    #
+    #     return run_num
 
-        ch_active = self.ADC_ch_active
-
-        if mode == 'INT':
-            '''
-                Get data
-            '''
-
-            count_meas = 0
-            empty_packet_count = 0
-            run_num = 0
-
-            self.write("SEQ:START")
-            time.sleep(0.1)
-
-            getting_valid_dataset = True
-
-            if self.display_IQ_progress:
-
-                self.display_IQ_progress_bar = IntProgress(min=0, max=n_rep) # instantiate the bar
-                display(self.display_IQ_progress_bar) # display the bar
-
-            while getting_valid_dataset:
-
-                while (count_meas//(16*N_adc_events))<n_rep:
-
-                    a = datetime.datetime.now()
-
-                    try:
-                        r = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
-                            is_big_endian=False)
-                    except:
-                        r=[]
-                    # lenr = len(r)
-                    # if len(r)>1:
-                    #     len_data_all +=len(r)
-                    # print(r[0], len_data_all, N_adc_events*16)
-
-                    b = datetime.datetime.now()
-                    # print('\nget data: ',b-a)
-
-                    if r == 'ERR':
-
-                        log.error('rfSoC: Instrument returned ERR!')
-
-                        # reset measurement
-                        count_meas = 0
-                        empty_packet_count = 0
-                        run_num = 0
-                        self.write("SEQ:STOP")
-                        time.sleep(2)
-                        while True:
-                            try:
-                                junk = self.visa_handle.quejunky_binajunky_values('OUTPUT:DATA?', datatype="h",
-                                    is_big_endian=False)
-                            except:
-                                junk=[]
-
-                            # print(junk)
-                            time.sleep(0.1)
-                            if junk == [3338] or junk == [2573] or junk == []:
-                                break
-                        junk = []
-                        nb_try +=1
-                        self.write("SEQ:START")
-                        time.sleep(0.1)
-
-                        continue
-
-                    elif len(r)>1:
-
-                        a = datetime.datetime.now()
-                        empty_packet_count = 0
-                        r_size = len(r)
-                        pk.dump(r, open(location+"/raw_"+str(run_num)+".pkl","wb"))
-                        count_meas += r_size
-                        if self.display_IQ_progress:
-                            self.display_IQ_progress_bar.value = count_meas//(16*N_adc_events)
-                        run_num += 1
-                        b = datetime.datetime.now()
-                        # print('end storing: ',b-a)
-
-                        time.sleep(0.01)
+    #
+    # def transfer_speed(self, block_size=100):
+    #
+    #     """
+    #     Legacy function, may not work with the current driver
+    #     """
+    #
+    #     block_n = int(block_size/10)
+    #     a = datetime.datetime.now()
+    #     for i in bar(range(block_n)):
+    #         try:
+    #             data = self.visa_handle.query_binary_values('OUTPUT:DATATEST?', datatype="h",
+    #                         is_big_endian=False)
+    #         except:
+    #             pass
+    #
+    #     b = datetime.datetime.now()
+    #     del_t = (b-a).seconds
+    #     speed = round(10*block_n/del_t,2)
+    #     event_rate = round(1000*speed/32,2)
+    #     pulse_length = round(1000/event_rate,2)
+    #     print('Transfer speed: '+str(speed)+' MBps')
+    #     print('Event rate: '+str(event_rate)+' K/s')
+    #     print('Minimum size of one ADC pulse: '+str(pulse_length)+' us per active channel')
 
 
-                    elif r == [3338] or r == [2573] or r==[]: # new empty packet?
-
-                        time.sleep(0.1)
-                        self.write("SEQ:STOP")
-                        try:
-                            junk = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
-                            is_big_endian=False)
-                        except:
-                            junk = []
-                        time.sleep(0.1)
-                        if junk == [3338] or junk == [2573] or junk ==[]:
-                            break
-                        junk = []
-
-                        self.write("SEQ:START")
-                        time.sleep(0.1)
-                        continue
-
-
-
-                if count_meas//(16*N_adc_events) == n_rep:
-
-                    getting_valid_dataset = False
-
-                else:
-
-                    log.error('Data curruption: rfSoC did not send all data points({}/'.format(count_meas//(16*N_adc_events))+str(n_rep)+').')
-
-                    # reset measurement
-                    data_unsorted = []
-                    count_meas = 0
-                    empty_packet_count = 0
-                    self.write("SEQ:STOP")
-                    time.sleep(2)
-                    while True:
-                        try:
-                            junk = self.visa_handle.query_binary_values('OUTPUT:DATA?', datatype="h",
-                            is_big_endian=False)
-                        except:
-                            junk = []
-
-                        time.sleep(0.1)
-                        if junk == [3338] or junk == [2573] or junk == []:
-                            break
-                    junk = []
-                    self.write("SEQ:START")
-                    time.sleep(0.1)
-
-            self.write("SEQ:STOP")
-
-        return run_num
-
-
-    def transfer_speed(self, block_size=100):
-
-        """
-        Legacy function, may not work with the current driver
-        """
-
-        block_n = int(block_size/10)
-        a = datetime.datetime.now()
-        for i in bar(range(block_n)):
-            try:
-                data = self.visa_handle.query_binary_values('OUTPUT:DATATEST?', datatype="h",
-                            is_big_endian=False)
-            except:
-                pass
-
-        b = datetime.datetime.now()
-        del_t = (b-a).seconds
-        speed = round(10*block_n/del_t,2)
-        event_rate = round(1000*speed/32,2)
-        pulse_length = round(1000/event_rate,2)
-        print('Transfer speed: '+str(speed)+' MBps')
-        print('Event rate: '+str(event_rate)+' K/s')
-        print('Minimum size of one ADC pulse: '+str(pulse_length)+' us per active channel')
-
-
-    def ask_raw(self, cmd: str) -> str:
-            """
-            Legacy function, may not work with the current driver
-
-            Overwriting the ask_ray qcodes native function to query binary
-            Low-level interface to ``visa_handle.ask``.
-            Args:
-                cmd: The command to send to the instrument.
-            Returns:
-                str: The instrument's response.
-            """
-            with DelayedKeyboardInterrupt():
-                keep_trying = True
-                count = 0
-                while keep_trying:
-                    count += 1
-                    self.visa_log.debug(f"Querying: {cmd}")
-                    try:
-                        response = self.visa_handle.query_binary_values(cmd, datatype="h", is_big_endian=False)
-                        self.visa_log.debug(f"Response: {response}")
-                        if len(response) > 1:
-                            i = 0
-                    except:
-                        try:        # try to read the data as a single point of data in case buffer is empty
-                            response = self.visa_handle.query_binary_values(cmd, datatype="h", is_big_endian=False, data_points=1, header_fmt='ieee', expect_termination=False)
-                        except:
-                            response = 'ERR'
-                    if response != 'ERR' and response != [3338]:
-                        keep_trying = False
-                    if count>10:
-                        keep_trying = False
-
-            return response
+    # def ask_raw(self, cmd: str) -> str:
+    #         """
+    #         Legacy function, may not work with the current driver
+    #
+    #         Overwriting the ask_ray qcodes native function to query binary
+    #         Low-level interface to ``visa_handle.ask``.
+    #         Args:
+    #             cmd: The command to send to the instrument.
+    #         Returns:
+    #             str: The instrument's response.
+    #         """
+    #         with DelayedKeyboardInterrupt():
+    #             keep_trying = True
+    #             count = 0
+    #             while keep_trying:
+    #                 count += 1
+    #                 self.visa_log.debug(f"Querying: {cmd}")
+    #                 try:
+    #                     response = self.visa_handle.query_binary_values(cmd, datatype="h", is_big_endian=False)
+    #                     self.visa_log.debug(f"Response: {response}")
+    #                     if len(response) > 1:
+    #                         i = 0
+    #                 except:
+    #                     try:        # try to read the data as a single point of data in case buffer is empty
+    #                         response = self.visa_handle.query_binary_values(cmd, datatype="h", is_big_endian=False, data_points=1, header_fmt='ieee', expect_termination=False)
+    #                     except:
+    #                         response = 'ERR'
+    #                 if response != 'ERR' and response != [3338]:
+    #                     keep_trying = False
+    #                 if count>10:
+    #                     keep_trying = False
+    #
+    #         return response
 
 
     def int_0(self):
@@ -2394,15 +2393,15 @@ class RFSoC(VisaInstrument):
     def time_conversion(self, t):
 
         """
-        This function ensure that any time is compatible with the FPGA_clock speed. 
+        This function ensure that any time is compatible with the FPGA_clock speed.
         I.E. is a multiple of 4ns.
-        It should be used to define any time to ensure phase stability. 
+        It should be used to define any time to ensure phase stability.
 
-        Parameter: 
-        - t -- (float) time to be converted 
-        - t_conv -- (float) time compatible with the RFSoC 
+        Parameter:
+        - t -- (float) time to be converted
+        - t_conv -- (float) time compatible with the RFSoC
         """
 
         nb_clock_per_us = self.FPGA_clock*1e-6
         t_conv = np.round(t*nb_clock_per_us)/nb_clock_per_us
-        return t_conv 
+        return t_conv
