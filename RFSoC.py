@@ -1921,7 +1921,7 @@ class RFSoC(VisaInstrument):
             ch_num = (raw_IQ_data_dump_header%256).T[0]
 
             # extract number of accumulated points for normalization from 3rd to 6th byte of header
-            num_points = np.frombuffer(np.stack((raw_IQ_data_dump_header.T[1], raw_IQ_data_dump_header.T[2]), axis=1).astype('int16').tobytes(), dtype=np.long)
+            num_points = np.frombuffer(np.stack((raw_IQ_data_dump_header.T[1], raw_IQ_data_dump_header.T[2]), axis=1).astype('int16').tobytes(), dtype=np.int_)
 
             # vectors indicating channel that the data originated from
             ch_1 = ch_num*(ch_num == np.ones(len(ch_num)))
