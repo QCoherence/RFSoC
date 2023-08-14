@@ -49,6 +49,8 @@ log = logging.getLogger(__name__)
 
 
 
+def Gaussian(x, mu, sigma):
+    return np.exp(-(x-mu)**2/(2*sigma**2))
 
 
 class GeneratedSetPoints(Parameter):
@@ -755,7 +757,7 @@ class RFSoC(VisaInstrument):
                                         customdata=np.dstack((pulses_loop.label, pulses_loop.start, pulses_loop.stop))[0],
                                         hovertemplate='label: %{customdata[0]: s} <br>start: %{customdata[1]:.3f} <br>stop: %{customdata[2]:.3f}'), idx + 1, 1)
 
-            fig.update_layout(showlegend=False)
+            fig.update_layout(height = 200+80*idx,width = 1600 ,showlegend=False)
             fig.show()
 
 
@@ -1634,6 +1636,43 @@ class RFSoC(VisaInstrument):
                 wavepoints =  wavepoints[0]
                 wavepoints = np.append(wavepoints,stop_vector)
 
+        elif function == 'Gauss':
+            mu = (time_vec[0]+time_vec[-1])/2
+            sigma = np.abs(time_vec[0]-time_vec[-1])/(2*np.pi)
+
+            wavepoints = ((2**13)*self.DAC_amplitude_calib[ch-1]*param['dc_offset'] - 1) + ((2**13)*self.DAC_amplitude_calib[ch-1]*param['amp'] - 1)*Gaussian(time_vec,mu, sigma)*np.sin(-param['phase_offset'] + 2*np.pi*param['freq']*1e6*time_vec)
+
+            idx_of = np.nonzero(((wavepoints > 8191) | (wavepoints < -8192)))[0]
+            if len(np.nonzero(wavepoints[idx_of] != 16381)[0])>0:
+                if mode =='DAC':
+                    log.error('Error when filling the DAC memory: maximal amplitude is over the resolution')
+                elif mode == 'ADC':
+                    log.error('Error when filling the ADC memory: maximal amplitude is over the resolution')
+
+            if self.debug_mode and self.debug_mode_plot_waveforms:
+                print('plot of sin mode')
+                fig = plt.figure(figsize=(8,5))
+                plt.plot(time_vec*1e9,wavepoints)
+                plt.grid()
+                plt.legend(fontsize = 14)
+                plt.show()
+
+            if mode == 'DAC':
+
+                # adding zeros to make length multiple of 8
+                wavepoints = np.append(wavepoints,np.zeros(len(time_vec)%8))
+                trig_rep_len = int(len(wavepoints)/8)
+                # adding trigger vectors
+                wavepoints = np.concatenate((wavepoints.reshape(trig_rep_len,8), np.array(np.zeros(trig_rep_len))[:,None]),axis=1)
+                wavepoints = np.concatenate((wavepoints, np.array(np.zeros(trig_rep_len))[:,None]),axis=1)
+
+                # adding repetation (0 for once)
+                wavepoints = np.concatenate((wavepoints, np.array(np.zeros(trig_rep_len))[:,None]),axis=1)
+                # convert to 1D array
+                wavepoints = wavepoints.reshape(1,len(wavepoints)*len(wavepoints[0]))
+
+                wavepoints =  wavepoints[0]
+                wavepoints = np.append(wavepoints,stop_vector)
 
 
 
